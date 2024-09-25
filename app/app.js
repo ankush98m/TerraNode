@@ -34,6 +34,11 @@ app.get('/healthz', async (req, res) => {
     }
 });
 
+// Handle unsupported HTTP methods for the /healthz endpoint
+app.all('/healthz', (req, res) => {
+    res.status(405).set('Cache-Control', 'no-cache').send();
+  });
+
 app.listen(port, ()=>{
     console.log(`Webapp listening on port ${port}`)
 })
