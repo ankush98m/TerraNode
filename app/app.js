@@ -2,16 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const port = 3000;
-const { Sequelize, DataTypes } = require("sequelize");
+const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, process.env.DB_PASSWORD, {
     host: process.env.DB_HOST,
     dialect: 'postgres', 
   });
-
-// app.get("/", (req, res) => {
-//   res.send("Hello World!");
-// });
 
 app.get("/healthz", async (req, res) => {
   // No payload allowed
@@ -42,7 +38,7 @@ app.all("/healthz", (req, res) => {
 
 // Handle all other endpoints with a 400 status code
 app.all("*", (req, res) => {
-  res.status(400).send("Bad Request");
+  res.status(400).send();
 });
 
 app.listen(port, () => {
