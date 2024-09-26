@@ -5,11 +5,13 @@ This a web application to test the connectivity with the database (postgreSQL) a
 
 ## Pre-requisites
 - Download and install Node 20.15.1 or higher or the LTS version
+- Download and install PostgreSQL 16 or higher
 
 ## How to Run the application
 - Clone the application in your laptop or computer
 - Go to the root directory (webapp) of the application
 - Run command "npm install" or "npm i" to install the dependencies
 - Go to "app" directory
-- Run command "node app.js"
+- add .env file and store credentials for postgresql
+- Run command "node app.js" in terminal
 - Application will start running at localhost:3000
