@@ -4,17 +4,41 @@ const app = express();
 const port = 3000;
 const { Sequelize } = require("sequelize");
 
-const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, process.env.DB_PASSWORD, {
+const sequelize = new Sequelize(
+  process.env.DB_DATABASE,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
     host: process.env.DB_HOST,
-    dialect: 'postgres', 
-  });
+    dialect: "postgres",
+  }
+);
+
+app.use(express.json());
+ 
+// no query parameter allowed
+app.use((req, res, next) => {
+  if (Object.keys(req.query).length > 0) {
+    return res.status(400).send();
+  }
+  next();
+});
+
+// no head request allowed
+app.head("/healthz", async (req, res) => {
+  return res
+      .status(405)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
+})
 
 app.get("/healthz", async (req, res) => {
   // No payload allowed
-  if (req.body && Object.keys(req.body).length > 0) {
-    return res.status(400).send();
-  }
   try {
+    if (req.body && Object.keys(req.body).length > 0) {
+      return res.status(400).send();
+    }
+
     // Connect to the database
     await sequelize.authenticate();
     res
@@ -33,12 +57,17 @@ app.get("/healthz", async (req, res) => {
 
 // Handle unsupported HTTP methods for the /healthz endpoint
 app.all("/healthz", (req, res) => {
-  res.status(405).set("Cache-Control", "no-cache").send();
+  if (req.method != "GET") {
+    return res
+      .status(405)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
+  }
 });
 
 // Handle all other endpoints with a 400 status code
 app.all("*", (req, res) => {
-  res.status(400).send();
+  res.status(404).send();
 });
 
 app.listen(port, () => {
