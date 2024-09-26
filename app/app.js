@@ -43,6 +43,11 @@ app.all("/healthz", (req, res) => {
   res.status(405).set("Cache-Control", "no-cache").send();
 });
 
+// Handle all other endpoints with a 400 status code
+app.all("*", (req, res) => {
+  res.status(400).send("Bad Request");
+});
+
 app.listen(port, () => {
   console.log(`Webapp listening on port ${port}`);
 });
