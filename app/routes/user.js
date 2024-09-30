@@ -38,7 +38,10 @@ module.exports = (sequelize) => {
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: "Internal server error" });
+      res
+      .status(503)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
     }
   });
 
@@ -75,7 +78,10 @@ module.exports = (sequelize) => {
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Internal server error" });
+      res
+      .status(503)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
     }
   });
 
@@ -141,7 +147,10 @@ module.exports = (sequelize) => {
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: "Internal server error" });
+      res
+      .status(503)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
     }
   });
 
