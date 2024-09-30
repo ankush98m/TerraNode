@@ -44,5 +44,37 @@ module.exports = (sequelize) => {
     }
   });
 
+  // get request to retreive user information
+  router.get('/v1/user/self', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      // check authheader exist or not
+      if (!authHeader) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // extract username and password from authheader
+      const [username, password] = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+      const user = await User.findOne({ where: { email: username } });
+
+      // check password matches or not
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+  
+      res.json({
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        account_created: user.account_created,
+        account_updated: user.account_updated,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   return router;
 };
