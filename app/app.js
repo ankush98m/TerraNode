@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const port = 3000;
 const { Sequelize } = require("sequelize");
+const userRoutes = require('./routes/user');
 
 const sequelize = new Sequelize(
   process.env.DB_DATABASE,
@@ -14,7 +15,18 @@ const sequelize = new Sequelize(
   }
 );
 
+// Sync the models with the database
+sequelize.sync()
+  .then(() => {
+    console.log("Database synced");
+  })
+  .catch((error) => {
+    console.error("Error syncing database:", error);
+  });
+
 app.use(express.json());
+
+app.use(userRoutes(sequelize));
  
 // no query parameter allowed
 app.use((req, res, next) => {
@@ -65,7 +77,7 @@ app.all("/healthz", (req, res) => {
   }
 });
 
-// Handle all other endpoints with a 400 status code
+// Handle all other endpoints with a 404 status code
 app.all("*", (req, res) => {
   res.status(404).send();
 });
