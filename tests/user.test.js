@@ -1,5 +1,7 @@
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
+
+// Establish connection with database
 const sequelize = new Sequelize(
   process.env.DB_DATABASE_TEST,
   process.env.DB_USER,
@@ -34,7 +36,8 @@ app.use(userRoutes(sequelize));
 
 describe("User API", () => {
   let testUserEmail = "test.user@example.com";
-  let authCredentials = 'test.user@example.com:test123'; 
+  let authCredentials = "test.user@example.com:test123";
+
   // Setup the database before all tests
   beforeAll(async () => {
     await sequelize.sync({ force: true });
@@ -92,26 +95,100 @@ describe("User API", () => {
     });
   });
 
-  describe('GET /v1/user/self', () => {
-    it('should retrieve user details', async () => {
+  // Test suite for getting user information
+  describe("GET /v1/user/self", () => {
+    it("should retrieve user details", async () => {
       const res = await request(app)
-        .get('/v1/user/self')
-        .set('Authorization', `Basic ${Buffer.from(authCredentials).toString('base64')}`);
-  
+        .get("/v1/user/self")
+        .set(
+          "Authorization",
+          `Basic ${Buffer.from(authCredentials).toString("base64")}`
+        );
+
       expect(res.statusCode).toBe(200);
       expect(res.body).toMatchObject({
         email: testUserEmail,
-        first_name: 'Test',
-        last_name: 'User',
+        first_name: "Test",
+        last_name: "User",
       });
     });
-  
-    it('should return 401 for invalid credentials', async () => {
-      const invalidCredentials = 'invalid@example.com:wrongpassword';
+
+    it("should return 401 for invalid credentials", async () => {
+      const invalidCredentials = "invalid@example.com:invalidpassword";
       const res = await request(app)
-        .get('/v1/user/self')
-        .set('Authorization', `Basic ${Buffer.from(invalidCredentials).toString('base64')}`);
-  
+        .get("/v1/user/self")
+        .set(
+          "Authorization",
+          `Basic ${Buffer.from(invalidCredentials).toString("base64")}`
+        );
+
+      expect(res.statusCode).toBe(401);
+    });
+  });
+
+  // Test suite for updating user information
+  describe("PUT /v1/user/self", () => {
+    it("should update user details successfully", async () => {
+      const updatedUserData = {
+        first_name: "Test",
+        last_name: "User2",
+      };
+
+      const res = await request(app)
+        .put("/v1/user/self")
+        .send(updatedUserData)
+        .set(
+          "Authorization",
+          `Basic ${Buffer.from(authCredentials).toString("base64")}`
+        );
+
+      expect(res.statusCode).toBe(204);
+    });
+
+    it("should return 400 when no fields are provided", async () => {
+      const res = await request(app)
+        .put("/v1/user/self")
+        .send({})
+        .set(
+          "Authorization",
+          `Basic ${Buffer.from(authCredentials).toString("base64")}`
+        );
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 400 if extra fields are provided", async () => {
+      const res = await request(app)
+        .put("/v1/user/self")
+        .send({
+          first_name: "Test",
+          last_name: "User",
+          password: "test123",
+          email: "updateEmail@example.com", // extrafield
+        })
+        .set(
+          "Authorization",
+          `Basic ${Buffer.from(authCredentials).toString("base64")}`
+        );
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 401 for unauthorized user", async () => {
+      const invalidCredentials = "unauthorized@example.com:invalidpassword";
+
+      const res = await request(app)
+        .put("/v1/user/self")
+        .send({
+          first_name: "Test2",
+          last_name: "User",
+          password: "test1234",
+        })
+        .set(
+          "Authorization",
+          `Basic ${Buffer.from(invalidCredentials).toString("base64")}`
+        );
+
       expect(res.statusCode).toBe(401);
     });
   });

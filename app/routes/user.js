@@ -108,7 +108,7 @@ module.exports = (sequelize) => {
         .toString()
         .split(":");
       const user = await User.findOne({ where: { email: username } });
-
+      console.log("user:", user)
       // check password matches or not
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -128,7 +128,7 @@ module.exports = (sequelize) => {
 
       // return 204 when all fields are empty
       if(first_name == undefined && last_name == undefined && newPassword == undefined){
-        return res.status(204).json({ message: "No content" })
+        return res.status(400).json({ message: "Bad Request" })
       }
 
       // updating fields
@@ -144,7 +144,7 @@ module.exports = (sequelize) => {
 
       await user.save();
 
-      res.json({
+      res.status(204).json({
         id: user.id,
         first_name: user.first_name,
         last_name: user.last_name,
