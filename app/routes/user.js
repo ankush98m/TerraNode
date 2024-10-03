@@ -137,17 +137,17 @@ module.exports = (sequelize) => {
       // validate if the fields are string
       if(first_name!= undefined){
         if(first_name !== 'string' && first_name.trim() === ''){
-          return res.status(401).json({ message: "Unauthorized" });
+          return res.status(400).json({ message: "Bad Request" });
         }
       }
       if(last_name!= undefined){
         if(last_name !== 'string' && last_name.trim() === ''){
-          return res.status(401).json({ message: "Unauthorized" });
+          return res.status(400).json({ message: "Bad Request" });
         }
       }
       if(newPassword!= undefined){
         if(newPassword !== 'string' && newPassword.trim() === ''){
-          return res.status(401).json({ message: "Unauthorized" });
+          return res.status(400).json({ message: "Bad Request" });
         }
       }
       
@@ -213,14 +213,6 @@ function validate_input(first_name, last_name, password, email) {
     typeof first_name === "string" &&
     typeof last_name === "string" &&
     typeof email === "string" &&
-    typeof password === "string"
-  );
-}
-
-function validate_update_input(first_name, last_name, password) {
-  return (
-    typeof first_name === "string" &&
-    typeof last_name === "string" &&
     typeof password === "string"
   );
 }

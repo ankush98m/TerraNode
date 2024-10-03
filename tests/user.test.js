@@ -93,6 +93,20 @@ describe("User API", () => {
 
       expect(res.statusCode).toBe(400);
     });
+
+    it("should return an error if all fields are not provided", async () => {
+        const res = await request(app).post("/v1/user").send({
+          first_name: "Test",
+          last_name: "User",
+        });
+  
+        expect(res.statusCode).toBe(400);
+      });
+
+      it("should return an error if no fields are provided", async () => {
+        const res = await request(app).post("/v1/user").send({});
+        expect(res.statusCode).toBe(400);
+      });
   });
 
   // Test suite for getting user information
