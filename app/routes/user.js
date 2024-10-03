@@ -6,6 +6,13 @@ const router = express.Router();
 module.exports = (sequelize) => {
   const User = UserModel(sequelize);
 
+  router.head("/v1/user/self", async(req, res)=>{
+    return res
+      .status(405)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
+  })
+
   // post request to add a user
   router.post("/v1/user", async (req, res) => {
     try {
@@ -39,7 +46,7 @@ module.exports = (sequelize) => {
     } catch (err) {
       console.error(err);
       res
-      .status(503)
+      .status(400)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
     }
@@ -148,11 +155,19 @@ module.exports = (sequelize) => {
     } catch (err) {
       console.error(err);
       res
-      .status(503)
+      .status(400)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
     }
   });
+
+  // return 405 for all other methods
+  router.all("/v1/user/self", async(req, res)=>{
+    return res
+      .status(405)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
+  })
 
   return router;
 };

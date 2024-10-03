@@ -77,7 +77,7 @@ app.all("/healthz", (req, res) => {
   }
 });
 
-// Handle all other endpoints with a 400 status code
+// Handle all other endpoints with a 404 status code
 app.all("*", (req, res) => {
   res.status(404).send();
 });
