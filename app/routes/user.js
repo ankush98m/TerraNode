@@ -18,6 +18,20 @@ module.exports = (sequelize) => {
     try {
       const { first_name, last_name, email, password } = req.body;
 
+      // validate if the fields are string
+      if (!validate_input(first_name, last_name, password, email)) {
+        return res.status(400).json({
+          message: "Bad Request",
+        });
+      }
+
+      // validate email format
+      if(!emailFormat(email)){
+        return res.status(400).json({
+          message: "Bad Request",
+        });
+      }
+
       // checking for existing user
       const isExistingUser = await User.findOne({ where: { email } });
       if (isExistingUser) {
@@ -46,7 +60,7 @@ module.exports = (sequelize) => {
     } catch (err) {
       console.error(err);
       res
-      .status(400)
+      .status(503)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
     }
@@ -59,6 +73,11 @@ module.exports = (sequelize) => {
       // check authheader exist or not
       if (!authHeader) {
         return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // no req body should be allowed
+      if (req.body && Object.keys(req.body).length > 0) {
+        return res.status(400).send();
       }
 
       // extract username and password from authheader
@@ -94,7 +113,6 @@ module.exports = (sequelize) => {
 
   router.put("/v1/user/self", async (req, res) => {
     try {
-        console.log("in put api")
       const authHeader = req.headers.authorization;
       if (!authHeader) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -108,13 +126,31 @@ module.exports = (sequelize) => {
         .toString()
         .split(":");
       const user = await User.findOne({ where: { email: username } });
-      console.log("user:", user)
+      
       // check password matches or not
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
       const { first_name, last_name, password: newPassword } = req.body;
+
+      // validate if the fields are string
+      if(first_name!= undefined){
+        if(first_name !== 'string' && first_name.trim() === ''){
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+      }
+      if(last_name!= undefined){
+        if(last_name !== 'string' && last_name.trim() === ''){
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+      }
+      if(newPassword!= undefined){
+        if(newPassword !== 'string' && newPassword.trim() === ''){
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+      }
+      
       
       const allowedFields = ["first_name", "last_name", "password"];
       const invalidFields = Object.keys(req.body).filter(
@@ -155,7 +191,7 @@ module.exports = (sequelize) => {
     } catch (err) {
       console.error(err);
       res
-      .status(400)
+      .status(503)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
     }
@@ -171,3 +207,25 @@ module.exports = (sequelize) => {
 
   return router;
 };
+
+function validate_input(first_name, last_name, password, email) {
+  return (
+    typeof first_name === "string" &&
+    typeof last_name === "string" &&
+    typeof email === "string" &&
+    typeof password === "string"
+  );
+}
+
+function validate_update_input(first_name, last_name, password) {
+  return (
+    typeof first_name === "string" &&
+    typeof last_name === "string" &&
+    typeof password === "string"
+  );
+}
+
+function emailFormat(email){
+  const pattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+  return pattern.test(email);
+}
