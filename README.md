@@ -13,6 +13,7 @@ This a web application to test the connectivity with the database (postgreSQL) a
 - Go to the root directory (webapp) of the application
 - Run command "npm install" or "npm i" to install the dependencies
 - Go to "app" directory
-- add .env file and add the credentials (host, user, password, database, port) of the database
+- add .env file 
+- add the credentials (host, user, password, database, port) of the database
 - Run command "node app.js" in terminal
 - Application will start running at localhost:3000
