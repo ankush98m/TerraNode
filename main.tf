@@ -4,7 +4,7 @@ provider "aws" {
 
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr_block
-  
+
   tags = {
     Name = "CSYE6225-VPC"
   }
@@ -25,7 +25,7 @@ resource "aws_subnet" "public_subnets" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.public_subnet_cidr_blocks[count.index]
   availability_zone = var.availability_zones[count.index]
-  
+
   tags = {
     Name = "Public Subnet ${count.index + 1}"
   }
