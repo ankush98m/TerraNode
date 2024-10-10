@@ -6,6 +6,7 @@ on:
 
 jobs:
   test:
+    name: Node Application Tests
     runs-on: ubuntu-latest
 
     services:
