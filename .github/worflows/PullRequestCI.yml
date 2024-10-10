@@ -1,0 +1,23 @@
+name: Terraform Continuous Integration on Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+
+      - name: Perform Terraform validation
+        run: terraform validate
