@@ -1,9 +1,9 @@
 provider "aws" {
-  region = "us-east-1" 
+  region = var.region
 }
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr_block
   
   tags = {
     Name = "CSYE6225-VPC"
@@ -20,69 +20,30 @@ resource "aws_internet_gateway" "main" {
 }
 
 # Public Subnets
-resource "aws_subnet" "public_subnet_1" {
+resource "aws_subnet" "public_subnets" {
+  count             = length(var.public_subnet_cidr_blocks)
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  cidr_block        = var.public_subnet_cidr_blocks[count.index]
+  availability_zone = var.availability_zones[count.index]
   
   tags = {
-    Name = "Public Subnet 1"
-  }
-}
-
-resource "aws_subnet" "public_subnet_2" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-1b"
-  
-  tags = {
-    Name = "Public Subnet 2"
-  }
-}
-
-resource "aws_subnet" "public_subnet_3" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.3.0/24"
-  availability_zone = "us-east-1c"
-  
-  tags = {
-    Name = "Public Subnet 3"
+    Name = "Public Subnet ${count.index + 1}"
   }
 }
 
 # Private subnets
-resource "aws_subnet" "private_subnet_1" {
+resource "aws_subnet" "private_subnets" {
+  count             = length(var.private_subnet_cidr_blocks)
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.4.0/24"
-  availability_zone = "us-east-1a"
+  cidr_block        = var.private_subnet_cidr_blocks[count.index]
+  availability_zone = var.availability_zones[count.index]
 
-  tags = {  
-    Name = "Private Subnet 1"
+  tags = {
+    Name = "Private Subnet ${count.index + 1}"
   }
 }
 
-resource "aws_subnet" "private_subnet_2" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.5.0/24"
-  availability_zone = "us-east-1b"
-
-  tags = {
-    Name = "Private Subnet 2"
-  }
-}
-
-resource "aws_subnet" "private_subnet_3" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.6.0/24"
-  availability_zone = "us-east-1c"
-
-  tags = {
-    Name = "Private Subnet 3"
-  }
-}  
-
-
-# public route table
+# Public route table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -96,19 +57,10 @@ resource "aws_route_table" "public" {
   }
 }
 
-# public subnets with the public route table
-resource "aws_route_table_association" "public_1" {
-  subnet_id      = aws_subnet.public_subnet_1.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "public_2" {
-  subnet_id      = aws_subnet.public_subnet_2.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "public_3" {
-  subnet_id      = aws_subnet.public_subnet_3.id
+# Public subnets with the public route table
+resource "aws_route_table_association" "public" {
+  count          = length(aws_subnet.public_subnets)
+  subnet_id      = aws_subnet.public_subnets[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
@@ -122,17 +74,8 @@ resource "aws_route_table" "private" {
 }
 
 # Private subnets with the private route table
-resource "aws_route_table_association" "private_1" {
-  subnet_id      = aws_subnet.private_subnet_1.id
-  route_table_id = aws_route_table.private.id
-}
-
-resource "aws_route_table_association" "private_2" {
-  subnet_id      = aws_subnet.private_subnet_2.id
-  route_table_id = aws_route_table.private.id
-}
-
-resource "aws_route_table_association" "private_3" {
-  subnet_id      = aws_subnet.private_subnet_3.id
+resource "aws_route_table_association" "private" {
+  count          = length(aws_subnet.private_subnets)
+  subnet_id      = aws_subnet.private_subnets[count.index].id
   route_table_id = aws_route_table.private.id
 }
