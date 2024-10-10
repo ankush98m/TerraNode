@@ -1,4 +1,4 @@
-name: Terraform Continuous Integration on Pull Request
+name: Terraform Pull Request Workflow
 
 on:
   pull_request:
