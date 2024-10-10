@@ -1,4 +1,4 @@
-name: Terraform Pull Request Workflow
+name: Workflow CI
 
 on:
   pull_request:
@@ -6,18 +6,21 @@ on:
       - main
 
 jobs:
-  terraform-ci:
+  terraform:
+    name: Terraform Format and Validate
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Configure Terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.9.0
 
-      - name: Check Terraform formatting
+      - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
-      - name: Perform Terraform validation
+      - name: Terraform Validate
         run: terraform validate
