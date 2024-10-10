@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-1" # Replace with your desired AWS region
+  region = "us-east-1" 
 }
 
 resource "aws_vpc" "main" {
@@ -10,6 +10,14 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Internet Gateway
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "CSYE6225-IGW"
+  }
+}
 
 # Public Subnets
 resource "aws_subnet" "public_subnet_1" {
