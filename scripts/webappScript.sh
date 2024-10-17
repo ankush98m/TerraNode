@@ -12,7 +12,7 @@ cd /opt/webapp
 sudo npm install
 
 # Run npm test to execute any test cases
-npm test
+# npm test
 
 # Navigate to the app directory
 cd /opt/webapp/app

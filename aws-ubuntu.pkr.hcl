@@ -29,17 +29,17 @@ variable "subnet_id" {
 
 variable "DB_PASSWORD" {
   type    = string
-  default = "password"
+  default = "SESdept@7829"
 }
 
 variable "DB_USER" {
   type    = string
-  default = "user"
+  default = "postgres"
 }
 
 variable "DB_NAME" {
   type    = string
-  default = "db"
+  default = "csye6225webapp"
 }
 
 source "amazon-ebs" "ubuntu-ami" {
