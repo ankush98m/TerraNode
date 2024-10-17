@@ -13,11 +13,13 @@ variable "aws_region" {
 }
 
 variable "source_ami" {
-  type = string
+  type    = string
+  default = "ami-0866a3c8686eaeeba"
 }
 
 variable "ssh_username" {
-  type = string
+  type    = string
+  default = "ubuntu"
 }
 
 variable "subnet_id" {
