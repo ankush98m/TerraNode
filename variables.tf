@@ -27,3 +27,9 @@ variable "availability_zones" {
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 }
+
+variable "custom_ami_id" {
+  description = "AMI Id created by packer"
+  type        = string
+  default     = "ami-0b69689f8db530c08"
+}

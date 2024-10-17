@@ -79,3 +79,61 @@ resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.private_subnets[count.index].id
   route_table_id = aws_route_table.private.id
 }
+
+# Security Group for EC2 Instances
+resource "aws_security_group" "app_sg" {
+  name        = "application_security_group"
+  description = "Security group for web application instances"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Specify the application port here (e.g., 3000)
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "Application Security Group"
+  }
+}
+
+# EC2 Instance
+resource "aws_instance" "web_app_instance" {
+  ami                    = var.custom_ami_id
+  instance_type          = "t2.small"
+  subnet_id              = aws_subnet.public_subnets[0].id
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
+
+  root_block_device {
+    volume_size           = 25
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+
+  tags = {
+    Name = "Web Application Instance"
+  }
+}
