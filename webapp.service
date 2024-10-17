@@ -1,0 +1,14 @@
+[Unit]
+Description=Node.js Web Application
+After=network.target
+
+[Service]
+User=csye6225
+Group=csye6225
+WorkingDirectory=/opt/webapp
+EnvironmentFile=/opt/webapp/.env
+ExecStart=/usr/bin/node /opt/webapp/app/app.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
