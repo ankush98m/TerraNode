@@ -8,23 +8,36 @@ packer {
 }
 
 variable "aws_region" {
-  type    = string
+   type    = string
   default = "us-east-1"
 }
 
 variable "source_ami" {
   type    = string
-  default = "ami-0866a3c8686eaeeba"
 }
 
 variable "ssh_username" {
   type    = string
-  default = "ubuntu"
 }
 
 variable "subnet_id" {
   type    = string
   default = "subnet-0a1b9aeeb361cd276"
+}
+
+variable "DB_PASSWORD" {
+  type    = string
+  default = "default_password"
+}
+
+variable "DB_USER" {
+  type    = string
+  default = "default_user"
+}
+
+variable "DB_NAME" {
+  type    = string
+  default = "default_db"
 }
 
 source "amazon-ebs" "ubuntu-ami" {
@@ -48,20 +61,54 @@ source "amazon-ebs" "ubuntu-ami" {
   launch_block_device_mappings {
     delete_on_termination = true
     device_name           = "/dev/sda1"
-    volume_size           = 8
+    volume_size           = 25
     volume_type           = "gp2"
   }
 }
-
 
 build {
   sources = [
     "source.amazon-ebs.ubuntu-ami"
   ]
+
   provisioner "shell" {
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive",
       "CHECKPOINT_DISABLE=1"
+    ]
+    inline = [
+      "sudo apt-get update",
+      "sudo apt-get install -y curl unzip" # Install unzip here
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = [
+      "DB_PASSWORD=${var.DB_PASSWORD}",
+      "DB_USER=${var.DB_USER}",
+      "DB_NAME=${var.DB_NAME}"
+    ]
+    scripts = [
+      "scripts/install_nodejs.sh",
+      "scripts/install_postgres.sh"
+    ]
+  }
+
+ provisioner "file" {
+    source      = "./webapp.zip"
+    destination = "/tmp/webapp.zip"
+  }
+
+  provisioner "file" {
+    source      = "./webapp.service"
+    destination = "/tmp/webapp.service"
+  }
+
+  provisioner "shell" {
+    scripts = [
+      "scripts/webappScript.sh",
+      "scripts/userScript.sh",
+      "scripts/serviceScript.sh"
     ]
   }
 }
