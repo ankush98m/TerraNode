@@ -3,7 +3,7 @@
 cd /tmp
 
 # Unzip the web application
-sudo unzip webapp.zip -d /opt
+sudo mv /tmp/webapp /opt/
 
 # Navigate to the web application directory
 cd /opt/webapp
