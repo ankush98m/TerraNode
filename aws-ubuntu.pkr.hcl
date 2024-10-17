@@ -27,17 +27,17 @@ variable "subnet_id" {
 
 variable "DB_PASSWORD" {
   type    = string
-  default = "default_password"
+  default = "password"
 }
 
 variable "DB_USER" {
   type    = string
-  default = "default_user"
+  default = "user"
 }
 
 variable "DB_NAME" {
   type    = string
-  default = "default_db"
+  default = "db"
 }
 
 source "amazon-ebs" "ubuntu-ami" {

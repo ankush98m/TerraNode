@@ -130,4 +130,4 @@ dist
 .pnp.*
 
 # Ignore development variables file
-dev.pkvars.hcl
+variables.pkrvars.hcl
