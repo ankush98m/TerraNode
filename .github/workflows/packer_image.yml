@@ -24,6 +24,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Zip Artifact
+        run: |
+          zip -r webapp.zip ./
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: [20.x] 
+
+      - name: Install Dependencies
+        run: npm install  
+
+      - name: Run Jest Tests
+        run: npm test
+      
       - name: Configure Environment Variables
         run: |
           touch .env
@@ -37,10 +52,6 @@ jobs:
         run: |
           DATE=$(date +'%Y-%m-%d-%H-%M-%S')
           export PKR_VAR_ami_name="${{ secrets.AMI_NAME }}-${DATE}"
-
-      - name: Zip Artifact
-        run: |
-          zip -r webapp.zip ./
 
       - name: Set up AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
