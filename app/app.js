@@ -82,6 +82,6 @@ app.all("*", (req, res) => {
   res.status(404).send();
 });
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0',() => {
   console.log(`Webapp listening on port ${port}`);
 });

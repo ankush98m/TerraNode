@@ -97,7 +97,7 @@ build {
   }
 
   provisioner "file" {
-    source      = "../webapp"
+    source      = "./webapp.zip"
     destination = "/tmp/webapp"
   }
 

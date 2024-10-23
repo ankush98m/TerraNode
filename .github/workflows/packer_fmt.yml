@@ -15,6 +15,10 @@ jobs:
         uses: hashicorp/setup-packer@main
         with:
           version: '1.11.2'
+      
+      - name: Zip Artifact
+        run: |
+          zip -r webapp.zip ./
 
       - name: Initialize Packer
         run: packer init .
