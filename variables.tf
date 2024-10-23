@@ -33,3 +33,9 @@ variable "custom_ami_id" {
   type        = string
   default     = "ami-0b69689f8db530c08"
 }
+
+variable "db_port" {
+  description = "The port on which the database is listening"
+  type        = number
+  default     = 5432
+}
