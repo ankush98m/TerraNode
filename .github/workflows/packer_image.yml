@@ -13,15 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PKR_VAR_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      PKR_VAR_DB_USER: ${{ secrets.DB_USER }}
-      PKR_VAR_DB_NAME: ${{ secrets.DB_DATABASE }}
-      PKR_VAR_ami_name: ${{ secrets.AMI_NAME }}
-      PKR_VAR_region: ${{ secrets.AWS_REGION }}
-      PKR_VAR_instance_type: ${{ secrets.INSTANCE_TYPE }}
-      PKR_VAR_source_ami: ${{ secrets.SOURCE_AMI }}
-      PKR_VAR_profile: ${{ secrets.AWS_PROFILE }}
-      PKR_VAR_ssh_username: ${{ secrets.SSH_USERNAME }}
+      PKR_VAR_DB_PASSWORD: SESdept@7829
+      PKR_VAR_DB_USER: postgres
+      PKR_VAR_DB_NAME: csye6225webapp
+      PKR_VAR_ami_name: custom-ubuntu
+      PKR_VAR_region: us-east-1
+      PKR_VAR_instance_type: t2.small
+      PKR_VAR_source_ami: ami-0866a3c8686eaeeba
+      PKR_VAR_profile: csye6225-dev
+      PKR_VAR_ssh_username: ubuntu
 
     steps:
       - name: Checkout repository
@@ -38,15 +38,18 @@ jobs:
 
       - name: Install Dependencies
         run: npm install  
+
+      - name: Run Jest Tests
+        run: npm test
       
       - name: Configure Environment Variables
         run: |
           touch .env
-          echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-          echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-          echo DB_DATABASE=${{ secrets.DB_DATABASE }} >> .env
-          echo DB_USER=${{ secrets.DB_USER }} >> .env
-          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
+          echo DB_HOST=localhost >> .env
+          echo DB_PORT=5432 >> .env
+          echo DB_DATABASE=csye6225webapp >> .env
+          echo DB_USER=postgres >> .env
+          echo DB_PASSWORD="SESdept@7829" >> .env
 
       - name: Set AMI Name with Date postfix
         run: |
@@ -56,9 +59,9 @@ jobs:
       - name: Set up AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "us-east-1"
+          aws-access-key-id: "AKIAQZFG5K6MBWM4E5PF"
+          aws-secret-access-key: "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"
+          aws-region: us-east-1
 
       - name: Set up Packer
         uses: hashicorp/setup-packer@main
