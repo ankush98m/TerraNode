@@ -1,13 +1,7 @@
-resource "aws_key_pair" "my_key" {
-  key_name   = "my-key-pair"
-  public_key = file("C:/Users/ankus/.ssh/id_rsa.pub") # Path to your public key
-}
-
 # EC2 Instance
 resource "aws_instance" "web_app_instance" {
   ami                         = var.custom_ami_id
   instance_type               = "t2.small"
-  key_name                    = aws_key_pair.my_key.key_name # Reference to the key pair
   subnet_id                   = aws_subnet.public_subnets[0].id
   vpc_security_group_ids      = [aws_security_group.app_sg.id]
   associate_public_ip_address = true
