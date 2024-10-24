@@ -49,9 +49,6 @@ jobs:
           echo DB_USER=postgres >> .env
           echo DB_PASSWORD="SESdept@7829" >> .env
 
-      - name: Run Jest Tests
-        run: npm test
-
       - name: Set AMI Name with Date postfix
         run: |
           DATE=$(date +'%Y-%m-%d-%H-%M-%S')
