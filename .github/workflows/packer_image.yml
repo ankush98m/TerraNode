@@ -1,12 +1,9 @@
 name: Packer Build
 
-# on:
-#   push:
-#     branches:
-#       - main
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches:
+      - main
 
 jobs:
   build-ami:
