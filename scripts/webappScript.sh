@@ -16,7 +16,7 @@ sudo npm install
 # npm test
 
 # Navigate to the app directory
-cd /opt/webapp/app
+# cd /opt/webapp/app
 
 # Start the Node.js server using node app.js and run it in the background
-nohup node app.js > app.log 2>&1 &
+# nohup node app.js > app.log 2>&1 &

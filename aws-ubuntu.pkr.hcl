@@ -92,13 +92,12 @@ build {
     ]
     scripts = [
       "scripts/install_nodejs.sh",
-      "scripts/install_postgres.sh"
     ]
   }
 
   provisioner "file" {
     source      = "./webapp.zip"
-    destination = "/tmp/webapp"
+    destination = "/tmp/webapp.zip"
   }
 
   provisioner "file" {
