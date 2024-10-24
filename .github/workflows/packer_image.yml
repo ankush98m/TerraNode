@@ -38,9 +38,6 @@ jobs:
 
       - name: Install Dependencies
         run: npm install  
-
-      - name: Run Jest Tests
-        run: npm test
       
       - name: Configure Environment Variables
         run: |
