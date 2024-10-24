@@ -92,7 +92,6 @@ build {
     ]
     scripts = [
       "scripts/install_nodejs.sh",
-      "scripts/install_postgres.sh"
     ]
   }
 
