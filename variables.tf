@@ -31,11 +31,36 @@ variable "availability_zones" {
 variable "custom_ami_id" {
   description = "AMI Id created by packer"
   type        = string
-  default     = "ami-0b69689f8db530c08"
+  default     = "ami-010f692e1b8fe9582"
 }
 
 variable "db_port" {
   description = "The port on which the database is listening"
   type        = number
   default     = 5432
+}
+
+variable "db_engine" {
+  description = "The database engine (e.g., mysql, postgres)"
+  type        = string
+  default     = "postgres"
+}
+
+variable "db_name" {
+  description = "The name of the database"
+  type        = string
+  default     = "csye6225"
+}
+
+variable "db_username" {
+  description = "The master username for the database"
+  type        = string
+  default     = "csye6225"
+}
+
+variable "db_password" {
+  description = "The master password for the database"
+  type        = string
+  sensitive   = true
+  default     = "SESdept!7829"
 }
