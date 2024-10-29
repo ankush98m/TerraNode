@@ -15,18 +15,22 @@ resource "aws_instance" "web_app_instance" {
   # Pass the RDS instance configuration via user data
   user_data = <<-EOF
               #!/bin/bash
-              
-              cd /opt/webapp/app
+              # Install PostgreSQL client
+              sudo apt-get update
+              sudo apt-get install -y postgresql-client
 
-              # Setup environment variables for PostgreSQL database
-              echo "DB_HOST=$echo ${aws_db_instance.default.endpoint}" >> .env
-              echo "DB_PORT=${var.db_port}" >> .env
-              echo "DB_USER=csye6225" >> .env
-              echo "DB_PASSWORD=${var.db_password}" >> .env
-              echo "DB_DATABASE=${var.db_name}" >> .env
+              PGPASSWORD="${var.db_password}" psql -h ${aws_db_instance.default.address} -U ${var.db_username} -p ${var.db_port} postgres <<-EOSQL
+              CREATE DATABASE ${var.db_name};
+              EOSQL
 
-              node app.js
-              EOF
+              echo DB_DATABSE=${var.db_name} >> /opt/webapp/app/.env
+              echo DB_USER=${var.db_username} >> /opt/webapp/app/.env
+              echo DB_PASSWORD=${var.db_password} >> /opt/webapp/app/.env
+              echo DB_PORT=5432 >> /opt/webapp/app/.env
+              echo DB_HOST=${aws_db_instance.default.address} >> /opt/webapp/app/.env
+              sudo systemctl start webapp.service
+              sudo 
+              EOF
 
   tags = {
     Name = "Web Application Instance"
