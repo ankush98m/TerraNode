@@ -45,4 +45,30 @@ module.exports = (sequelize) => {
         .send();
     }
   });
+
+  // Get Profile Image
+  router.get("/v1/user/self/pic", async (req, res) => {
+    try {
+      const { userId } = req.user;
+
+      const profile = await Profile.findOne({ where: { userId } });
+      if (!profile) {
+        return res.status(404).json({ message: "Profile image not found" });
+      }
+
+      res.json({
+        id: profile.id,
+        fileName: profile.fileName,
+        url: profile.url,
+        upload_date: profile.upload_date,
+        userId: profile.userId
+      });
+    } catch (error) {
+      console.error("Error retrieving profile image:", error);
+      res
+        .status(503)
+        .set("Cache-Control", "no-cache, no-store, must-revalidate")
+        .send();
+    }
+  });
 }
