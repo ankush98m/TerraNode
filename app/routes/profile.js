@@ -71,4 +71,30 @@ module.exports = (sequelize) => {
         .send();
     }
   });
+
+  // Delete Profile Image
+  router.delete("/v1/user/self/pic", async (req, res) => {
+    try {
+      const { userId } = req.user;
+
+      const authHeader = req.headers.authorization;
+      // check authheader exist or not
+      if (!authHeader) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const deletedProfile = await Profile.destroy({ where: { userId } });
+      if (!deletedProfile) {
+        return res.status(404).json();
+      }
+
+      res.status(204).json();
+    } catch (error) {
+      console.error("Error deleting profile image:", error);
+      res
+        .status(503)
+        .set("Cache-Control", "no-cache, no-store, must-revalidate")
+        .send();
+    }
+  });
 }
