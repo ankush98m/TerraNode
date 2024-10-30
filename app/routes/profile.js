@@ -12,7 +12,17 @@ module.exports = (sequelize) => {
   router.post("/v1/user/self/pic", async (req, res) => {
     try {
       const { userId } = req.user; // Assume req.user is set after authentication
-      const { file_name, url, upload_date} = req.body;
+      const { file_name, url} = req.body;
+
+      const allowedFields = ["file_name", "url",];
+      const invalidFields = Object.keys(req.body).filter(
+        (field) => !allowedFields.includes(field)
+      );
+
+      // return 400 for invalid fields
+      if (invalidFields.length > 0) {
+        return res.status(400).json({message: "Bad request"});
+      }
 
       // Validate input
       if (!file_name || !url) {
@@ -26,15 +36,14 @@ module.exports = (sequelize) => {
         // Update existing profile image
         profile.fileName = file_name;
         profile.url = url;
-        profile.upload_date = upload_date
         await profile.save();
       } else {
         // Create new profile image
-        profile = await Profile.create({ userId, file_name, url });
+        profile = await Profile.create({ file_name, url });
       }
 
-      res.status(200).json({
-        message: profile ? "Profile image updated successfully" : "Profile image added successfully",
+      res.status(201).json({
+        message: profile ? "Profile image updated successfully" : "	Profile pic added/updated",
         profile,
       });
     } catch (error) {
@@ -83,6 +92,20 @@ module.exports = (sequelize) => {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      // extract username and password from authheader
+      const [username, password] = Buffer.from(
+        authHeader.split(" ")[1],
+        "base64"
+      )
+        .toString()
+        .split(":");
+      const user = await User.findOne({ where: { email: username } });
+
+      // check password matches or not
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       const deletedProfile = await Profile.destroy({ where: { userId } });
       if (!deletedProfile) {
         return res.status(404).json();
