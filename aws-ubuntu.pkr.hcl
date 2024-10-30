@@ -84,6 +84,11 @@ build {
     ]
   }
 
+    provisioner "file" {
+    source      = "./cloudwatch-config.json"
+    destination = "/opt/aws/amazon-cloudwatch-agent/bin/cloudwatch-config.json"
+    }
+
   provisioner "shell" {
     environment_vars = [
       "DB_PASSWORD=${var.DB_PASSWORD}",
