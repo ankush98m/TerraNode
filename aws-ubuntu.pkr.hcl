@@ -84,10 +84,16 @@ build {
     ]
   }
 
-    provisioner "file" {
+  provisioner "file" {
     source      = "./cloudwatch-config.json"
-    destination = "/opt/aws/amazon-cloudwatch-agent/bin/cloudwatch-config.json"
-    }
+    destination = "/tmp/cloudwatch-config.json"
+  }
+
+  provisioner "shell" {
+    scripts = [
+      "scripts/setup_cloudWatch.sh",
+    ]
+  }
 
   provisioner "shell" {
     environment_vars = [
