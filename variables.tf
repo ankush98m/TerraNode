@@ -64,3 +64,9 @@ variable "db_password" {
   sensitive   = true
   default     = "SESdept!7829"
 }
+
+variable "domain" {
+  description = "Root domain"
+  type        = string
+  default     = "ankushm.me"
+}
