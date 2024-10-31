@@ -31,7 +31,7 @@ variable "availability_zones" {
 variable "custom_ami_id" {
   description = "AMI Id created by packer"
   type        = string
-  default     = "ami-010f692e1b8fe9582"
+  default     = "ami-0ef534e057a9681ce"
 }
 
 variable "db_port" {
@@ -69,4 +69,10 @@ variable "domain" {
   description = "Root domain"
   type        = string
   default     = "ankushm.me"
+}
+
+variable "subdomain" {
+  description = "Root domain"
+  type        = string
+  default     = "dev"
 }

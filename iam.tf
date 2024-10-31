@@ -5,12 +5,12 @@ resource "aws_iam_role" "cloudwatch_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
+        Action = "sts:AssumeRole"
         Principal = {
           Service = "ec2.amazonaws.com"
         }
-        Effect    = "Allow"
-        Sid       = ""
+        Effect = "Allow"
+        Sid    = ""
       },
     ]
   })
@@ -24,7 +24,7 @@ resource "aws_iam_policy" "cloudwatch_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action   = [
+        Action = [
           "cloudwatch:PutMetricData",
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
