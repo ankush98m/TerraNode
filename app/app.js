@@ -4,6 +4,7 @@ const app = express();
 const port = 3000;
 const { Sequelize } = require("sequelize");
 const userRoutes = require('./routes/user');
+const imageRoutes = require('./routes/image');
 
 const sequelize = new Sequelize(
   process.env.DB_DATABASE,
@@ -26,8 +27,10 @@ sequelize.sync()
 
 app.use(express.json());
 
+// creating tables
 app.use(userRoutes(sequelize));
- 
+app.use(imageRoutes(sequelize));
+
 // no query parameter allowed
 app.use((req, res, next) => {
   if (Object.keys(req.query).length > 0) {
