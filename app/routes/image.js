@@ -63,42 +63,56 @@ module.exports = (sequelize) => {
     upload.single("file_name"),
     async (req, res) => {
       try {
-        console.log("inside post req of pic");
+        logger.info('Starting image upload process', { userId: req.userId });
         const userId = req.userId;
 
-        // Check for additional fields in form-data
         if (Object.keys(req.body).length > 0) {
           return res.status(400).json();
         }
 
         if (!req.file) {
-          return res
-            .status(400)
-            .json({ message: "Bad Request: No file uploaded" });
+          return res.status(400).json({ message: "Bad Request: No file uploaded" });
         }
 
+        // First find if user already has an image
+        let profile = await Image.findOne({ where: { user_id: userId } });
+        
+        // If profile exists, delete the old image from S3 first
+        if (profile) {
+          try {
+            const deleteParams = {
+              Bucket: process.env.S3_BUCKET_NAME,
+              Key: profile.file_name // Use the existing file_name as the key
+            };
+            await s3.deleteObject(deleteParams).promise();
+            logger.info('Deleted old image from S3', { key: profile.file_name });
+          } catch (deleteError) {
+            logger.error('Error deleting old image from S3', { error: deleteError });
+          }
+        }
+
+        // Upload new image
         const fileContent = req.file.buffer;
-        // const file_name = req.file.originalname;
         const file_name = `${userId}/${uuidv4()}_${req.file.originalname}`;
-        // const url = `bucket-name/${userId}/${file_name}`;
-        const params = {
+        
+        const uploadParams = {
           Bucket: process.env.S3_BUCKET_NAME,
           Key: file_name,
           Body: fileContent,
           ContentType: req.file.mimetype,
         };
 
-        const s3Data = await s3.upload(params).promise();
+        const s3Data = await s3.upload(uploadParams).promise();
         const url = s3Data.Location;
 
-        let profile = await Image.findOne({ where: { user_id: userId } });
-
         if (profile) {
+          // Update existing record
           profile.file_name = file_name;
           profile.url = url;
           profile.upload_date = new Date();
           await profile.save();
         } else {
+          // Create new record
           profile = await Image.create({
             file_name,
             url,
@@ -107,7 +121,7 @@ module.exports = (sequelize) => {
           });
         }
 
-        res.status(201).json({
+        return res.status(201).json({
           message: "Profile pic added/updated",
           profile: {
             file_name: profile.file_name,
@@ -118,14 +132,19 @@ module.exports = (sequelize) => {
           },
         });
       } catch (error) {
-        console.error("Error adding/updating profile image:", error);
-        res
+        logger.error('Error in image upload process', {
+          error: error.message,
+          stack: error.stack,
+          userId: req.userId
+        });
+
+        return res
           .status(503)
           .set("Cache-Control", "no-cache, no-store, must-revalidate")
-          .send();
+          .json({ message: "Service temporarily unavailable" });
       }
     }
-  );
+);
 
   // Get user Image
   router.get("/v1/user/self/pic", authenticateUser, async (req, res) => {

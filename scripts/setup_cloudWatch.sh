@@ -7,9 +7,12 @@ rm amazon-cloudwatch-agent.deb
 # Move the CloudWatch configuration file to the correct directory
 sudo mv /tmp/cloudwatch-config.json /opt/aws/amazon-cloudwatch-agent/bin/cloudwatch-config.json
 
+# Create the logs directory and app.log file with necessary permissions
+sudo mkdir -p /opt/webapp/logs
+sudo touch /opt/webapp/logs/app.log
+sudo chmod 666 /opt/webapp/logs/app.log
+sudo chown -R ubuntu:ubuntu /opt/webapp/logs
+
 # Start CloudWatch Agent with the configuration
 sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
-sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -c file:/opt/aws/amazon-cloudwatch-agent/bin/cloudwatch-config.json
-
-sudo mkdir -p /opt/webapp/logs
-sudo chmod 755 /opt/webapp/logs
+# sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start -c file:/opt/aws/amazon-cloudwatch-agent/bin/cloudwatch-config.json
