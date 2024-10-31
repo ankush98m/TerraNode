@@ -3,6 +3,9 @@ const ImageModel = require("../models/image");
 const UserModel = require("../models/user");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
+const AWS = require("aws-sdk");
+const s3 = new AWS.S3();
+const { v4: uuidv4 } = require("uuid"); // For unique image names
 
 // Configure multer for handling file uploads
 const storage = multer.memoryStorage();
@@ -46,12 +49,12 @@ module.exports = (sequelize) => {
     }
   }
 
-  router.head("/v1/user/self/pic", async(req, res)=>{
+  router.head("/v1/user/self/pic", async (req, res) => {
     return res
       .status(405)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
-  })
+  });
 
   // Add or Update user Image
   router.post(
@@ -65,9 +68,7 @@ module.exports = (sequelize) => {
 
         // Check for additional fields in form-data
         if (Object.keys(req.body).length > 0) {
-          return res
-            .status(400)
-            .json();
+          return res.status(400).json();
         }
 
         if (!req.file) {
@@ -76,8 +77,19 @@ module.exports = (sequelize) => {
             .json({ message: "Bad Request: No file uploaded" });
         }
 
-        const file_name = req.file.originalname;
-        const url = `bucket-name/${userId}/${file_name}`;
+        const fileContent = req.file.buffer;
+        // const file_name = req.file.originalname;
+        const file_name = `${userId}/${uuidv4()}_${req.file.originalname}`;
+        // const url = `bucket-name/${userId}/${file_name}`;
+        const params = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: file_name,
+          Body: fileContent,
+          ContentType: req.file.mimetype,
+        };
+
+        const s3Data = await s3.upload(params).promise();
+        const url = s3Data.Location;
 
         let profile = await Image.findOne({ where: { user_id: userId } });
 
@@ -123,9 +135,7 @@ module.exports = (sequelize) => {
 
       // Check for additional fields in form-data
       if (Object.keys(req.body).length > 0) {
-        return res
-          .status(400)
-          .json();
+        return res.status(400).json();
       }
 
       const profile = await Image.findOne({ where: { user_id: userId } });
@@ -157,18 +167,23 @@ module.exports = (sequelize) => {
 
       // Check for additional fields in form-data
       if (Object.keys(req.body).length > 0) {
-        return res
-          .status(400)
-          .json();
+        return res.status(400).json();
       }
 
-      const deletedProfile = await Image.destroy({
-        where: { user_id: userId },
-      });
-
-      if (!deletedProfile) {
+      const profile = await Image.findOne({ where: { user_id: userId } });
+      if (!profile) {
         return res.status(404).json();
       }
+
+      // Remove image from S3
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: profile.file_name,
+      };
+      await s3.deleteObject(params).promise();
+
+      // Remove image record from database
+      await Image.destroy({ where: { user_id: userId } });
 
       res.status(204).json();
     } catch (error) {
@@ -181,12 +196,12 @@ module.exports = (sequelize) => {
   });
 
   // return 405 for all other methods
-  router.all("/v1/user/self/pic", async(req, res)=>{
+  router.all("/v1/user/self/pic", async (req, res) => {
     return res
       .status(405)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
-  })
+  });
 
   return router;
 };
