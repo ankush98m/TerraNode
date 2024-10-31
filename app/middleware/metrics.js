@@ -1,5 +1,6 @@
 const StatsD = require('node-statsd');
 const AWS = require('aws-sdk');
+const cloudwatch = new AWS.CloudWatch({ region: 'us-east-1' });
 
 // Initialize StatsD client
 const statsdClient = new StatsD({
@@ -14,11 +15,30 @@ const apiMetricsMiddleware = (req, res, next) => {
     res.on('finish', () => {
         const duration = Date.now() - start;
 
-        // Increment call count for each API endpoint
-        statsdClient.increment(`api.${req.method}.${req.path}.count`);
-
-        // Record response time
-        statsdClient.timing(`api.${req.method}.${req.path}.response_time`, duration);
+        // Count API calls
+        cloudwatch.putMetricData({
+            Namespace: 'Webapp/API',
+            MetricData: [
+                {
+                    MetricName: `${req.method}_${req.path}_count`,
+                    Dimensions: [
+                        { Name: 'API', Value: `${req.method}_${req.path}` }
+                    ],
+                    Value: 1,
+                    Unit: 'Count'
+                },
+                {
+                    MetricName: `${req.method}_${req.path}_response_time`,
+                    Dimensions: [
+                        { Name: 'API', Value: `${req.method}_${req.path}` }
+                    ],
+                    Value: duration,
+                    Unit: 'Milliseconds'
+                }
+            ]
+        }, (err, data) => {
+            if (err) console.error("Error sending metrics to CloudWatch", err);
+        });
     });
 
     next();
@@ -26,21 +46,48 @@ const apiMetricsMiddleware = (req, res, next) => {
 
 // Helper functions to time database and S3 calls
 const timeDatabaseQuery = async (queryFunc) => {
-    const dbStart = Date.now();
+    const start = Date.now();
     const result = await queryFunc();
-    statsdClient.timing('database.query.response_time', Date.now() - dbStart);
+    const duration = Date.now() - start;
+
+    cloudwatch.putMetricData({
+        Namespace: 'Webapp/Database',
+        MetricData: [
+            {
+                MetricName: 'query_response_time',
+                Value: duration,
+                Unit: 'Milliseconds'
+            }
+        ]
+    }, (err, data) => {
+        if (err) console.error("Error sending database metrics", err);
+    });
+
     return result;
 };
 
 const timeS3Operation = async (s3Operation) => {
-    const s3Start = Date.now();
+    const start = Date.now();
     const result = await s3Operation;
-    statsdClient.timing('aws.s3.call.response_time', Date.now() - s3Start);
+    const duration = Date.now() - start;
+
+    cloudwatch.putMetricData({
+        Namespace: 'Webapp/S3',
+        MetricData: [
+            {
+                MetricName: 's3_operation_response_time',
+                Value: duration,
+                Unit: 'Milliseconds'
+            }
+        ]
+    }, (err, data) => {
+        if (err) console.error("Error sending S3 metrics", err);
+    });
+
     return result;
 };
 
 module.exports = {
-    statsdClient,
     apiMetricsMiddleware,
     timeDatabaseQuery,
     timeS3Operation,
