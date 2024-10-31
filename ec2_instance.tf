@@ -5,6 +5,7 @@ resource "aws_instance" "web_app_instance" {
   subnet_id                   = aws_subnet.public_subnets[0].id
   vpc_security_group_ids      = [aws_security_group.app_sg.id]
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.cloudwatch_instance_profile.name
 
   root_block_device {
     volume_size           = 25
@@ -21,7 +22,7 @@ resource "aws_instance" "web_app_instance" {
               PGPASSWORD="${var.db_password}" psql -h ${aws_db_instance.default.address} -U ${var.db_username} -p ${var.db_port} postgres <<-EOSQL
               CREATE DATABASE ${var.db_name};
               EOSQL
-              
+
               echo DB_DATABSE=${var.db_name} >> /opt/webapp/app/.env
               echo DB_USER=${var.db_username} >> /opt/webapp/app/.env
               echo DB_PASSWORD=${var.db_password} >> /opt/webapp/app/.env
