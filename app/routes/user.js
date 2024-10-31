@@ -18,6 +18,16 @@ module.exports = (sequelize) => {
     try {
       const { first_name, last_name, email, password } = req.body;
 
+      const allowedFields = ["first_name", "last_name", "email", "password"];
+      const invalidFields = Object.keys(req.body).filter(
+        (field) => !allowedFields.includes(field)
+      );
+
+      // return 400 for invalid fields
+      if (invalidFields.length > 0) {
+        return res.status(400).json({message: "Bad request"});
+      }
+
       // validate if the fields are string
       if (!validate_input(first_name, last_name, password, email)) {
         return res.status(400).json({

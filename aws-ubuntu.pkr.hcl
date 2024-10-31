@@ -84,6 +84,17 @@ build {
     ]
   }
 
+  provisioner "file" {
+    source      = "./cloudwatch-config.json"
+    destination = "/tmp/cloudwatch-config.json"
+  }
+
+  provisioner "shell" {
+    scripts = [
+      "scripts/setup_cloudWatch.sh",
+    ]
+  }
+
   provisioner "shell" {
     environment_vars = [
       "DB_PASSWORD=${var.DB_PASSWORD}",

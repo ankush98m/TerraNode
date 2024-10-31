@@ -6,7 +6,7 @@ This a web application to test the connectivity with the database (postgreSQL) a
 ## Pre-requisites
 - Download and install Node 20.15.1 or higher or the LTS version
 - Download and install PostgreSQL 16 or higher
-- create a database in postgreSQL
+- create a database csye6225webapp in postgreSQL
 
 ## How to Run the application
 - Clone the application in your laptop or computer

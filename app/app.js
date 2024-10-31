@@ -4,6 +4,12 @@ const app = express();
 const port = 3000;
 const { Sequelize } = require("sequelize");
 const userRoutes = require('./routes/user');
+const imageRoutes = require('./routes/image');
+
+const AWS = require('aws-sdk');
+const metrics = require('./middleware/metrics');
+
+const logger = require('./utils/logger');
 
 const sequelize = new Sequelize(
   process.env.DB_DATABASE,
@@ -12,6 +18,7 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: "postgres",
+    logging: msg => logger.info(msg) 
   }
 );
 
@@ -24,10 +31,42 @@ sequelize.sync()
     console.error("Error syncing database:", error);
   });
 
-app.use(express.json());
+  // Request logging middleware
+app.use((req, res, next) => {
+  req.startTime = Date.now();
+  logger.info('Request received', {
+    method: req.method,
+    path: req.path,
+    headers: req.headers,
+    body: req.body
+  });
+  next();
+});
 
+app.use(express.json());
+app.use(metrics.apiMetricsMiddleware);
+app.use(metrics.timeDatabaseQuery);
+app.use(metrics.timeS3Operation);
+
+// Response logging middleware
+app.use((req, res, next) => {
+  const originalSend = res.send;
+  res.send = function (body) {
+    logger.info('Response sent', {
+      method: req.method,
+      path: req.path,
+      statusCode: res.statusCode,
+      responseTime: Date.now() - req.startTime
+    });
+    return originalSend.call(this, body);
+  };
+  next();
+});
+
+// creating tables
 app.use(userRoutes(sequelize));
- 
+app.use(imageRoutes(sequelize));
+
 // no query parameter allowed
 app.use((req, res, next) => {
   if (Object.keys(req.query).length > 0) {
@@ -80,6 +119,17 @@ app.all("/healthz", (req, res) => {
 // Handle all other endpoints with a 404 status code
 app.all("*", (req, res) => {
   res.status(404).send();
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  logger.error('Unhandled error', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method
+  });
+  res.status(503).send().set("Cache-Control", "no-cache", "no-store", "must-revalidate");
 });
 
 app.listen(port, '0.0.0.0',() => {
