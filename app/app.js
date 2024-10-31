@@ -6,6 +6,9 @@ const { Sequelize } = require("sequelize");
 const userRoutes = require('./routes/user');
 const imageRoutes = require('./routes/image');
 
+const AWS = require('aws-sdk');
+const metrics = require('./middleware/metrics');
+
 const sequelize = new Sequelize(
   process.env.DB_DATABASE,
   process.env.DB_USER,
@@ -26,6 +29,8 @@ sequelize.sync()
   });
 
 app.use(express.json());
+
+app.use(metrics.apiMetricsMiddleware);
 
 // creating tables
 app.use(userRoutes(sequelize));
