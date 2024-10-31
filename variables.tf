@@ -31,7 +31,7 @@ variable "availability_zones" {
 variable "custom_ami_id" {
   description = "AMI Id created by packer"
   type        = string
-  default     = "ami-010f692e1b8fe9582"
+  default     = "ami-0b90f469c7bbb4a4d"
 }
 
 variable "db_port" {
@@ -63,4 +63,40 @@ variable "db_password" {
   type        = string
   sensitive   = true
   default     = "SESdept!7829"
+}
+
+variable "domain" {
+  description = "Root domain"
+  type        = string
+  default     = "ankushm.me"
+}
+
+variable "subdomain" {
+  description = "Root domain"
+  type        = string
+  default     = "dev"
+}
+
+variable "aws_access_key_id" {
+  description = "Access Key Id"
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_secret_access_key" {
+  description = "Secret Access Key"
+  type        = string
+  sensitive   = true
+}
+
+variable "sendgrid_api_key" {
+  description = "send grip api key"
+  type        = string
+  sensitive   = true
+}
+
+variable "sender_email" {
+  description = "Sender email domain"
+  type        = string
+  sensitive   = true
 }
