@@ -1,6 +1,7 @@
 resource "aws_s3_bucket" "profile_pics" {
-  bucket = "profile-pics-${random_uuid.bucket_uuid.result}"
-  acl    = "private"
+  bucket        = "profile-pics-${random_uuid.bucket_uuid.result}"
+  acl           = "private"
+  force_destroy = true
 
   lifecycle_rule {
     enabled = true
