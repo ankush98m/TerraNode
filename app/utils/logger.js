@@ -20,3 +20,18 @@ const logger = winston.createLogger({
     })
   ]
 });
+
+// Add console transport if not in production
+// if (process.env.NODE_ENV !== 'production') {
+//     logger.add(new winston.transports.Console({
+//       format: winston.format.simple()
+//     }));
+//   }
+  
+  // Export logger methods individually to ensure they exist
+  module.exports = {
+    info: (message, meta) => logger.info(message, meta),
+    error: (message, meta) => logger.error(message, meta),
+    warn: (message, meta) => logger.warn(message, meta),
+    debug: (message, meta) => logger.debug(message, meta)
+  };

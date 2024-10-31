@@ -129,7 +129,7 @@ app.use((err, req, res, next) => {
     path: req.path,
     method: req.method
   });
-  res.status(500).send('Internal Server Error');
+  res.status(503).send().set("Cache-Control", "no-cache", "no-store", "must-revalidate");
 });
 
 app.listen(port, '0.0.0.0',() => {
