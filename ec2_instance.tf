@@ -1,16 +1,13 @@
 # EC2 Instance
-resource "aws_instance" "web_app_instance" {
-  ami                         = var.custom_ami_id
-  instance_type               = "t2.small"
-  subnet_id                   = aws_subnet.public_subnets[0].id
-  vpc_security_group_ids      = [aws_security_group.app_sg.id]
-  associate_public_ip_address = true
-  iam_instance_profile        = aws_iam_instance_profile.cloudwatch_instance_profile.name
+resource "aws_launch_template" "csye6225_asg_template" {
+  name          = "csye6225_asg"
+  image_id      = var.custom_ami_id
+  instance_type = "t2.micro"
+  key_name      = var.key_name
 
-  root_block_device {
-    volume_size           = 25
-    volume_type           = "gp2"
-    delete_on_termination = true
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.app_sg.id]
   }
 
   # Pass the RDS instance configuration via user data
