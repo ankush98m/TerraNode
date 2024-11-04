@@ -32,7 +32,8 @@ resource "aws_iam_policy" "cloudwatch_policy" {
           "logs:DescribeLogStreams",
           "s3:GetObject",
           "s3:PutObject",
-          "s3:DeleteObject"
+          "s3:DeleteObject",
+          "s3:ListAllMyBuckets"
         ]
         Effect   = "Allow"
         Resource = "*"
