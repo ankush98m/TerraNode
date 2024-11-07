@@ -6,6 +6,7 @@ const multer = require("multer");
 const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
 const { v4: uuidv4 } = require("uuid"); // For unique image names
+const logger = require('../utils/logger')
 
 // Configure multer for handling file uploads
 const storage = multer.memoryStorage();
@@ -24,7 +25,6 @@ module.exports = (sequelize) => {
   // Middleware to authenticate user
   async function authenticateUser(req, res, next) {
     const authHeader = req.headers.authorization;
-    console.log("inside middleware");
     if (!authHeader) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -40,7 +40,6 @@ module.exports = (sequelize) => {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      console.log("userid:", user.id);
       req.userId = user.id;
       next();
     } catch (error) {
@@ -63,7 +62,7 @@ module.exports = (sequelize) => {
     upload.single("file_name"),
     async (req, res) => {
       try {
-        logger.info('Starting image upload process', { userId: req.userId });
+        // logger.info('Starting image upload process', { userId: req.userId });
         const userId = req.userId;
 
         if (Object.keys(req.body).length > 0) {
@@ -71,30 +70,24 @@ module.exports = (sequelize) => {
         }
 
         if (!req.file) {
-          return res.status(400).json({ message: "Bad Request: No file uploaded" });
+          return res
+            .status(400)
+            .json({ message: "Bad Request: No file uploaded" });
         }
 
-        // First find if user already has an image
-        let profile = await Image.findOne({ where: { user_id: userId } });
-        
-        // If profile exists, delete the old image from S3 first
-        if (profile) {
-          try {
-            const deleteParams = {
-              Bucket: process.env.S3_BUCKET_NAME,
-              Key: profile.file_name // Use the existing file_name as the key
-            };
-            await s3.deleteObject(deleteParams).promise();
-            logger.info('Deleted old image from S3', { key: profile.file_name });
-          } catch (deleteError) {
-            logger.error('Error deleting old image from S3', { error: deleteError });
-          }
-        }
+        // Check if the user already has a profile image
+      const existingProfile = await Image.findOne({ where: { user_id: userId } });
+
+      if (existingProfile) {
+        return res
+        .status(400)
+        .json();
+      }
 
         // Upload new image
         const fileContent = req.file.buffer;
         const file_name = `${userId}/${uuidv4()}_${req.file.originalname}`;
-        
+
         const uploadParams = {
           Bucket: process.env.S3_BUCKET_NAME,
           Key: file_name,
@@ -105,30 +98,22 @@ module.exports = (sequelize) => {
         const s3Data = await s3.upload(uploadParams).promise();
         const url = s3Data.Location;
 
-        if (profile) {
-          // Update existing record
-          profile.file_name = file_name;
-          profile.url = url;
-          profile.upload_date = new Date();
-          await profile.save();
-        } else {
-          // Create new record
-          profile = await Image.create({
-            file_name,
-            url,
-            user_id: userId,
-            upload_date: new Date(),
-          });
-        }
+        const profile = await Image.create({
+          file_name: file_name,
+          url: url,
+          upload_date: new Date(),
+          user_id: userId,
+        });
 
+        logger.info(`Profile pic added/updated for user: ${userId}`);
         return res.status(201).json({
           message: "Profile pic added/updated",
           profile: {
             file_name: profile.file_name,
             id: profile.id,
             url: profile.url,
-            upload_date: profile.upload_date.toISOString().split("T")[0],
-            user_id: profile.user_id,
+            upload_date: profile.upload_date,
+            user_id: userId
           },
         });
       } catch (error) {
@@ -137,21 +122,21 @@ module.exports = (sequelize) => {
           stack: error.stack,
           userId: req.userId
         });
-
+        console.error("Error in image upload process:", error);
         return res
           .status(503)
           .set("Cache-Control", "no-cache, no-store, must-revalidate")
           .json({ message: "Service temporarily unavailable" });
       }
     }
-);
+  );
 
   // Get user Image
   router.get("/v1/user/self/pic", authenticateUser, async (req, res) => {
     try {
-      console.log("inside get req of pic");
+      
       const userId = req.userId;
-
+      logger.info(`Received request for profile image from user: ${userId}`);
       // Check for additional fields in form-data
       if (Object.keys(req.body).length > 0) {
         return res.status(400).json();
@@ -160,17 +145,19 @@ module.exports = (sequelize) => {
       const profile = await Image.findOne({ where: { user_id: userId } });
 
       if (!profile) {
+        logger.warn("Profile image not found for user: " + userId);
         return res.status(404).json({ message: "Profile image not found" });
       }
 
-      res.json({
+      res.status(200).json({
         id: profile.id,
         fileName: profile.file_name,
         url: profile.url,
-        upload_date: profile.upload_date.toISOString().split("T")[0],
+        upload_date: profile.upload_date,
         user_id: profile.user_id,
       });
     } catch (error) {
+      logger.error("Error retrieving profile image: " + error.message);
       console.error("Error retrieving profile image:", error);
       res
         .status(503)
@@ -199,6 +186,7 @@ module.exports = (sequelize) => {
         Bucket: process.env.S3_BUCKET_NAME,
         Key: profile.file_name,
       };
+
       await s3.deleteObject(params).promise();
 
       // Remove image record from database
