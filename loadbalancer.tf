@@ -3,14 +3,24 @@ resource "aws_lb" "web_app_lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.load_balancer_sg.id]
-  subnets            = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
+  subnets            = tolist([for subnet in aws_subnet.public_subnets : subnet.id])
 }
 
 resource "aws_lb_target_group" "web_app_tg" {
   name     = "web-app-tg"
-  port     = 80
+  port     = 3000
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+
+  health_check {
+    path                = "/healthz"
+    port                = "traffic-port" # Use the port defined in the target group
+    protocol            = "HTTP"
+    interval            = 30 # Health check interval in seconds
+    timeout             = 5  # Timeout for each health check attempt
+    healthy_threshold   = 2  # Number of successful checks to consider the target healthy
+    unhealthy_threshold = 2  # Number of failed checks to consider the target unhealthy
+  }
 }
 
 resource "aws_lb_listener" "http_listener" {

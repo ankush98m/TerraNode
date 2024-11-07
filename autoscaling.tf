@@ -4,10 +4,11 @@ resource "aws_autoscaling_group" "web_app_asg" {
     version = "$Latest"
   }
 
-  min_size         = 3
-  max_size         = 5
-  desired_capacity = 3
-  vpc_zone_identifier = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
+  min_size            = 3
+  max_size            = 5
+  desired_capacity    = 3
+  vpc_zone_identifier = aws_subnet.public_subnets[*].id # Fetch all public subnet IDs
+  target_group_arns   = [aws_lb_target_group.web_app_tg.arn]
 
   tag {
     key                 = "Name"
@@ -35,4 +36,3 @@ resource "aws_autoscaling_policy" "scale_down" {
 
   metric_aggregation_type = "Average"
 }
-

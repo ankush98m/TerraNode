@@ -1,7 +1,7 @@
 # Route 53 A record pointing to the EC2 instance
 resource "aws_route53_record" "app_record" {
   zone_id = var.route53_zone_id
-  name    = "dev.${var.domain_name}"
+  name    = "${var.subdomain}.${var.domain}"
   type    = "A"
 
   alias {

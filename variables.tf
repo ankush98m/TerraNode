@@ -31,7 +31,7 @@ variable "availability_zones" {
 variable "custom_ami_id" {
   description = "AMI Id created by packer"
   type        = string
-  default     = "ami-0b90f469c7bbb4a4d"
+  sensitive   = true
 }
 
 variable "db_port" {
@@ -62,7 +62,6 @@ variable "db_password" {
   description = "The master password for the database"
   type        = string
   sensitive   = true
-  default     = "SESdept!7829"
 }
 
 variable "domain" {
@@ -74,7 +73,7 @@ variable "domain" {
 variable "subdomain" {
   description = "Root domain"
   type        = string
-  default     = "dev"
+  sensitive   = true
 }
 
 variable "aws_access_key_id" {
@@ -97,6 +96,18 @@ variable "sendgrid_api_key" {
 
 variable "sender_email" {
   description = "Sender email domain"
+  type        = string
+  sensitive   = true
+}
+
+variable "route53_zone_id" {
+  description = "Zone id for route 53"
+  type        = string
+  default     = "Z03702998MDHATXO43N6"
+}
+
+variable "key_name" {
+  description = "ssh key name"
   type        = string
   sensitive   = true
 }
