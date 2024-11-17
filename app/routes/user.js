@@ -1,17 +1,23 @@
 const express = require("express");
 const UserModel = require("../models/user");
 const bcrypt = require("bcryptjs");
-
 const router = express.Router();
+const AWS = require("aws-sdk");
+
+AWS.config.update({
+  region: process.env.AWS_REGION || "us-east-1",
+});
+
+const sns = new AWS.SNS();
 module.exports = (sequelize) => {
   const User = UserModel(sequelize);
 
-  router.head("/v1/user/self", async(req, res)=>{
+  router.head("/v1/user/self", async (req, res) => {
     return res
       .status(405)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
-  })
+  });
 
   // post request to add a user
   router.post("/v1/user", async (req, res) => {
@@ -25,7 +31,7 @@ module.exports = (sequelize) => {
 
       // return 400 for invalid fields
       if (invalidFields.length > 0) {
-        return res.status(400).json({message: "Bad request"});
+        return res.status(400).json({ message: "Bad request" });
       }
 
       // validate if the fields are string
@@ -36,7 +42,7 @@ module.exports = (sequelize) => {
       }
 
       // validate email format
-      if(!emailFormat(email)){
+      if (!emailFormat(email)) {
         return res.status(400).json({
           message: "Bad Request",
         });
@@ -58,6 +64,28 @@ module.exports = (sequelize) => {
         password,
       });
 
+      // Publish to SNS topic
+      const snsMessage = {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        account_created: user.account_created,
+      };
+
+      const params = {
+        Message: JSON.stringify(snsMessage),
+        TopicArn: process.env.SNS_TOPIC_ARN, // Add this to your environment variables
+      };
+
+      sns.publish(params, (err, data) => {
+        if (err) {
+          console.error("Error publishing to SNS:", err);
+        } else {
+          console.log("SNS publish result:", data);
+        }
+      });
+
       // set the response
       res.status(201).json({
         id: user.id,
@@ -70,9 +98,9 @@ module.exports = (sequelize) => {
     } catch (err) {
       console.error(err);
       res
-      .status(503)
-      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
-      .send();
+        .status(503)
+        .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+        .send();
     }
   });
 
@@ -115,9 +143,9 @@ module.exports = (sequelize) => {
     } catch (error) {
       console.error(error);
       res
-      .status(503)
-      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
-      .send();
+        .status(503)
+        .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+        .send();
     }
   });
 
@@ -136,7 +164,7 @@ module.exports = (sequelize) => {
         .toString()
         .split(":");
       const user = await User.findOne({ where: { email: username } });
-      
+
       // check password matches or not
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -145,23 +173,22 @@ module.exports = (sequelize) => {
       const { first_name, last_name, password: newPassword } = req.body;
 
       // validate if the fields are string
-      if(first_name!= undefined){
-        if(first_name !== 'string' && first_name.trim() === ''){
+      if (first_name != undefined) {
+        if (first_name !== "string" && first_name.trim() === "") {
           return res.status(400).json({ message: "Bad Request" });
         }
       }
-      if(last_name!= undefined){
-        if(last_name !== 'string' && last_name.trim() === ''){
+      if (last_name != undefined) {
+        if (last_name !== "string" && last_name.trim() === "") {
           return res.status(400).json({ message: "Bad Request" });
         }
       }
-      if(newPassword!= undefined){
-        if(newPassword !== 'string' && newPassword.trim() === ''){
+      if (newPassword != undefined) {
+        if (newPassword !== "string" && newPassword.trim() === "") {
           return res.status(400).json({ message: "Bad Request" });
         }
       }
-      
-      
+
       const allowedFields = ["first_name", "last_name", "password"];
       const invalidFields = Object.keys(req.body).filter(
         (field) => !allowedFields.includes(field)
@@ -169,12 +196,16 @@ module.exports = (sequelize) => {
 
       // return 400 for invalid fields
       if (invalidFields.length > 0) {
-        return res.status(400).json({message: "Bad request"});
+        return res.status(400).json({ message: "Bad request" });
       }
 
       // return 204 when all fields are empty
-      if(first_name == undefined && last_name == undefined && newPassword == undefined){
-        return res.status(400).json({ message: "Bad Request" })
+      if (
+        first_name == undefined &&
+        last_name == undefined &&
+        newPassword == undefined
+      ) {
+        return res.status(400).json({ message: "Bad Request" });
       }
 
       // updating fields
@@ -201,19 +232,19 @@ module.exports = (sequelize) => {
     } catch (err) {
       console.error(err);
       res
-      .status(503)
-      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
-      .send();
+        .status(503)
+        .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+        .send();
     }
   });
 
   // return 405 for all other methods
-  router.all("/v1/user/self", async(req, res)=>{
+  router.all("/v1/user/self", async (req, res) => {
     return res
       .status(405)
       .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
       .send();
-  })
+  });
 
   return router;
 };
@@ -227,7 +258,7 @@ function validate_input(first_name, last_name, password, email) {
   );
 }
 
-function emailFormat(email){
+function emailFormat(email) {
   const pattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
   return pattern.test(email);
 }

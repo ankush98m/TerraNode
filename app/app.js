@@ -3,13 +3,17 @@ const express = require("express");
 const app = express();
 const port = 3000;
 const { Sequelize } = require("sequelize");
-const userRoutes = require('./routes/user');
-const imageRoutes = require('./routes/image');
+const userRoutes = require("./routes/user");
+const imageRoutes = require("./routes/image");
+const AWS = require("aws-sdk");
+const metrics = require("./middleware/metrics");
+const logger = require("./utils/logger");
 
-const AWS = require('aws-sdk');
-const metrics = require('./middleware/metrics');
+AWS.config.update({
+  region: process.env.AWS_REGION || "us-east-1",
+});
 
-const logger = require('./utils/logger');
+const sns = new AWS.SNS();
 
 const sequelize = new Sequelize(
   process.env.DB_DATABASE,
@@ -18,12 +22,13 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: "postgres",
-    logging: msg => logger.info(msg) 
+    logging: (msg) => logger.info(msg),
   }
 );
 
 // Sync the models with the database
-sequelize.sync()
+sequelize
+  .sync()
   .then(() => {
     console.log("Database synced");
   })
@@ -31,14 +36,14 @@ sequelize.sync()
     console.error("Error syncing database:", error);
   });
 
-  // Request logging middleware
+// Request logging middleware
 app.use((req, res, next) => {
   req.startTime = Date.now();
-  logger.info('Request received', {
+  logger.info("Request received", {
     method: req.method,
     path: req.path,
     headers: req.headers,
-    body: req.body
+    body: req.body,
   });
   next();
 });
@@ -52,11 +57,11 @@ app.use(metrics.timeS3Operation);
 app.use((req, res, next) => {
   const originalSend = res.send;
   res.send = function (body) {
-    logger.info('Response sent', {
+    logger.info("Response sent", {
       method: req.method,
       path: req.path,
       statusCode: res.statusCode,
-      responseTime: Date.now() - req.startTime
+      responseTime: Date.now() - req.startTime,
     });
     return originalSend.call(this, body);
   };
@@ -78,10 +83,10 @@ app.use((req, res, next) => {
 // no head request allowed
 app.head("/healthz", async (req, res) => {
   return res
-      .status(405)
-      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
-      .send();
-})
+    .status(405)
+    .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+    .send();
+});
 
 app.get("/healthz", async (req, res) => {
   // No payload allowed
@@ -123,15 +128,18 @@ app.all("*", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error('Unhandled error', {
+  logger.error("Unhandled error", {
     error: err.message,
     stack: err.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
   });
-  res.status(503).send().set("Cache-Control", "no-cache", "no-store", "must-revalidate");
+  res
+    .status(503)
+    .send()
+    .set("Cache-Control", "no-cache", "no-store", "must-revalidate");
 });
 
-app.listen(port, '0.0.0.0',() => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Webapp listening on port ${port}`);
 });
