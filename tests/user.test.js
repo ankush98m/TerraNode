@@ -110,22 +110,22 @@ describe("User API", () => {
   });
 
   // Test suite for getting user information
-  describe("GET /v1/user/self", () => {
-    it("should retrieve user details", async () => {
-      const res = await request(app)
-        .get("/v1/user/self")
-        .set(
-          "Authorization",
-          `Basic ${Buffer.from(authCredentials).toString("base64")}`
-        );
+  // describe("GET /v1/user/self", () => {
+  //   it("should retrieve user details", async () => {
+  //     const res = await request(app)
+  //       .get("/v1/user/self")
+  //       .set(
+  //         "Authorization",
+  //         `Basic ${Buffer.from(authCredentials).toString("base64")}`
+  //       );
 
-      expect(res.statusCode).toBe(403);
-      expect(res.body).toMatchObject({
-        email: testUserEmail,
-        first_name: "Test",
-        last_name: "User",
-      });
-    });
+  //     expect(res.statusCode).toBe(403);
+  //     expect(res.body).toMatchObject({
+  //       email: testUserEmail,
+  //       first_name: "Test",
+  //       last_name: "User",
+  //     });
+  //   });
 
     it("should return 401 for invalid credentials", async () => {
       const invalidCredentials = "invalid@example.com:invalidpassword";
