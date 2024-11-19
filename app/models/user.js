@@ -35,6 +35,11 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: Sequelize.NOW,
     },
+    verified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false, // Default to false until the user is verified
+    },
   }, {
     hooks: {
       beforeCreate: async (user) => {
