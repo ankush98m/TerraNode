@@ -41,7 +41,7 @@ module.exports = (sequelize) => {
       req.userId = user.id;
       next();
     } catch (error) {
-      console.error("Authentication error:", error);
+      console.log("Authentication error:", error);
       res.status(503).send("Service Unavailable");
     }
   }
@@ -117,7 +117,7 @@ module.exports = (sequelize) => {
 
       sns.publish(params, (err, data) => {
         if (err) {
-          console.error("Error publishing to SNS:", err);
+          console.log("Error publishing to SNS:", err);
         } else {
           console.log("SNS publish result:", data);
         }
@@ -133,7 +133,7 @@ module.exports = (sequelize) => {
         account_updated: user.account_updated,
       });
     } catch (err) {
-      console.error(err);
+      console.log(err);
       res
         .status(503)
         .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
@@ -148,7 +148,7 @@ module.exports = (sequelize) => {
       console.log("Received token:", token);
   
       if (!token) {
-        console.error("Token is missing in the request.");
+        console.log("Token is missing in the request.");
         res.status(403).send("Token is missing or invalid.");
         return;
       }
@@ -158,7 +158,7 @@ module.exports = (sequelize) => {
       });
   
       if (!userDetail) {
-        console.error("No user details found for the provided token.");
+        console.log("No user details found for the provided token.");
         res.status(403).send("Invalid or expired token.");
         return;
       }
@@ -205,7 +205,7 @@ module.exports = (sequelize) => {
           `);
           return;
         } else {
-          console.error("No user found for the provided email.");
+          console.log("No user found for the provided email.");
           res.status(401).send(`
             <html>
               <body style="text-align: center; margin-top: 50px;">
@@ -217,12 +217,12 @@ module.exports = (sequelize) => {
           return;
         }
       } else {
-        console.error("Email not found in user detail.");
+        console.log("Email not found in user detail.");
         res.status(401).send("Invalid email associated with token.");
         return;
       }
     } catch (error) {
-      console.error("An error occurred:", error);
+      console.log("An error occurred:", error);
       res.status(500).send(`
         <html>
           <body style="text-align: center; margin-top: 50px;">
@@ -272,7 +272,7 @@ module.exports = (sequelize) => {
         account_updated: user.account_updated,
       });
     } catch (error) {
-      console.error(error);
+      console.log(error);
       res
         .status(503)
         .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
@@ -361,7 +361,7 @@ module.exports = (sequelize) => {
         account_updated: user.account_updated,
       });
     } catch (err) {
-      console.error(err);
+      console.log(err);
       res
         .status(503)
         .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
@@ -410,7 +410,7 @@ async function createToken(email, EmailLog) {
 
     return token;
   } catch (error) {
-    console.error("Error creating token:", error);
+    console.log("Error creating token:", error);
     return null;
   }
 }
