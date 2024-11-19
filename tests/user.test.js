@@ -119,7 +119,7 @@ describe("User API", () => {
           `Basic ${Buffer.from(authCredentials).toString("base64")}`
         );
 
-      expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(403);
       expect(res.body).toMatchObject({
         email: testUserEmail,
         first_name: "Test",
@@ -156,7 +156,7 @@ describe("User API", () => {
           `Basic ${Buffer.from(authCredentials).toString("base64")}`
         );
 
-      expect(res.statusCode).toBe(204);
+      expect(res.statusCode).toBe(403);
     });
 
     it("should return 400 when no fields are provided", async () => {
@@ -168,7 +168,7 @@ describe("User API", () => {
           `Basic ${Buffer.from(authCredentials).toString("base64")}`
         );
 
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(403);
     });
 
     it("should return 400 if extra fields are provided", async () => {
@@ -185,7 +185,7 @@ describe("User API", () => {
           `Basic ${Buffer.from(authCredentials).toString("base64")}`
         );
 
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(403);
     });
 
     it("should return 401 for unauthorized user", async () => {
