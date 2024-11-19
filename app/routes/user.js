@@ -1,8 +1,10 @@
 const express = require("express");
 const UserModel = require("../models/user");
+const EmailLogModel = require("../models/emailLog");
 const bcrypt = require("bcryptjs");
 const router = express.Router();
 const AWS = require("aws-sdk");
+const crypto = require("crypto");
 
 AWS.config.update({
   region: process.env.AWS_REGION || "us-east-1",
@@ -11,6 +13,38 @@ AWS.config.update({
 const sns = new AWS.SNS();
 module.exports = (sequelize) => {
   const User = UserModel(sequelize);
+  const EmailLog = EmailLogModel(sequelize);
+
+  async function authenticateUser(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const [username, password] = Buffer.from(authHeader.split(" ")[1], "base64")
+      .toString()
+      .split(":");
+
+    try {
+      const user = await User.findOne({ where: { email: username } });
+
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (!user || !user.verified) {
+        return res
+          .status(403)
+          .json({ message: "Access denied. Verify your email first." });
+      }
+
+      req.userId = user.id;
+      next();
+    } catch (error) {
+      console.error("Authentication error:", error);
+      res.status(503).send("Service Unavailable");
+    }
+  }
 
   router.head("/v1/user/self", async (req, res) => {
     return res
@@ -64,6 +98,8 @@ module.exports = (sequelize) => {
         password,
       });
 
+      const token = await createToken(user.email, EmailLog)
+
       // Publish to SNS topic
       const snsMessage = {
         id: user.id,
@@ -71,11 +107,12 @@ module.exports = (sequelize) => {
         last_name: user.last_name,
         email: user.email,
         account_created: user.account_created,
+        token: token
       };
 
       const params = {
         Message: JSON.stringify(snsMessage),
-        TopicArn: process.env.SNS_TOPIC_ARN, // Add this to your environment variables
+        TopicArn: process.env.SNS_TOPIC_ARN, 
       };
 
       sns.publish(params, (err, data) => {
@@ -104,8 +141,102 @@ module.exports = (sequelize) => {
     }
   });
 
+  // verification route
+  router.get("/user/verify", async (req, res) => {
+    try {
+      const token = req.query.token;
+      console.log("Received token:", token);
+  
+      if (!token) {
+        console.error("Token is missing in the request.");
+        res.status(403).send("Token is missing or invalid.");
+        return;
+      }
+  
+      const userDetail = await EmailLog.findOne({
+        where: { token: token },
+      });
+  
+      if (!userDetail) {
+        console.error("No user details found for the provided token.");
+        res.status(403).send("Invalid or expired token.");
+        return;
+      }
+  
+      console.log("Email log found:", userDetail);
+  
+      const currTime = Math.floor(Date.now() / 1000);
+      const email_time = Math.floor(userDetail.email_sent_time / 1000);
+      const diffTime = currTime - email_time;
+  
+      console.log(`Current time: ${currTime}, Email sent time: ${email_time}, Time difference: ${diffTime}s`);
+  
+      if (diffTime >= 2 * 60) { // 2 minutes in seconds
+        console.warn("Token has expired.");
+        res.status(403).send("Link expired. Please request a new verification email.");
+        return;
+      }
+  
+      const email = userDetail.email;
+      console.log("Email associated with token:", email);
+  
+      if (email) {
+        const user = await User.findOne({
+          where: { email: email },
+        });
+  
+        if (user) {
+          console.log("User found:", user);
+  
+          await user.update({ verified: true });
+          console.log("User verified successfully.");
+  
+          await userDetail.update({ email_verified_time: Date.now() });
+          console.log("Email verification time updated in EmailLog.");
+  
+          // Send success response to the user
+          res.status(200).send(`
+            <html>
+              <body style="text-align: center; margin-top: 50px;">
+                <h1>Email Verified Successfully!</h1>
+                <p>Your email has been verified. You can now log in.</p>
+              </body>
+            </html>
+          `);
+          return;
+        } else {
+          console.error("No user found for the provided email.");
+          res.status(401).send(`
+            <html>
+              <body style="text-align: center; margin-top: 50px;">
+                <h1>User Not Found</h1>
+                <p>Unable to find a user with this email. Please contact support.</p>
+              </body>
+            </html>
+          `);
+          return;
+        }
+      } else {
+        console.error("Email not found in user detail.");
+        res.status(401).send("Invalid email associated with token.");
+        return;
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      res.status(500).send(`
+        <html>
+          <body style="text-align: center; margin-top: 50px;">
+            <h1>Verification Failed</h1>
+            <p>An unexpected error occurred. Please try again later.</p>
+          </body>
+        </html>
+      `);
+    }
+  });
+  
+
   // get request to retreive user information
-  router.get("/v1/user/self", async (req, res) => {
+  router.get("/v1/user/self", authenticateUser, async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
       // check authheader exist or not
@@ -149,7 +280,7 @@ module.exports = (sequelize) => {
     }
   });
 
-  router.put("/v1/user/self", async (req, res) => {
+  router.put("/v1/user/self", authenticateUser, async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader) {
@@ -261,4 +392,25 @@ function validate_input(first_name, last_name, password, email) {
 function emailFormat(email) {
   const pattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
   return pattern.test(email);
+}
+
+// Create a new user verification record
+async function createToken(email, EmailLog) {
+  try {
+    // Generate a random 32-byte token (256 bits)
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // Store the token in the database or use it as needed
+    await EmailLog.create({
+      email: email,
+      token: token,
+      email_sent_time: new Date(),
+      email_verified_time: null, // Initially set to null as it hasn't been verified yet
+    });
+
+    return token;
+  } catch (error) {
+    console.error("Error creating token:", error);
+    return null;
+  }
 }

@@ -40,6 +40,10 @@ module.exports = (sequelize) => {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      if (!user || !user.verified) {
+        return res.status(403).json({ message: 'Access denied. Verify your email first.' });
+      }
+
       req.userId = user.id;
       next();
     } catch (error) {
