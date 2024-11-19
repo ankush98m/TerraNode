@@ -1,3 +1,26 @@
+resource "aws_cloudwatch_metric_alarm" "rds_cpu_high" {
+  alarm_name          = "RDSCPUHighAlarm"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/RDS"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 4
+  alarm_description   = "Alarm when CPU utilization is over 5%"
+  dimensions = {
+    DBInstanceIdentifier = aws_db_instance.default.id
+  }
+
+  alarm_actions = [
+    aws_autoscaling_policy.scale_up.arn
+  ]
+
+  ok_actions = [
+    aws_autoscaling_policy.scale_down.arn
+  ]
+}
+
 resource "aws_autoscaling_group" "web_app_asg" {
   launch_template {
     id      = aws_launch_template.csye6225_asg_template.id

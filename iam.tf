@@ -55,13 +55,13 @@ resource "aws_iam_instance_profile" "cloudwatch_instance_profile" {
 
 # IAM Role for Lambda
 resource "aws_iam_role" "lambda_role" {
-  name               = "lambda_email_verification_role"
+  name = "lambda_email_verification_role"
   assume_role_policy = jsonencode({
     Version : "2012-10-17"
     Statement : [
       {
-        Action    : "sts:AssumeRole"
-        Effect    : "Allow"
+        Action : "sts:AssumeRole"
+        Effect : "Allow"
         Principal : {
           Service : "lambda.amazonaws.com"
         }
@@ -77,29 +77,29 @@ resource "aws_iam_policy" "lambda_policy" {
     Version : "2012-10-17"
     Statement : [
       {
-        Action   : [
+        Action : [
           "sns:Publish",
           "ses:SendEmail",
           "ses:SendRawEmail"
         ]
-        Effect   : "Allow"
+        Effect : "Allow"
         Resource : "*"
       },
       {
-        Action   : [
+        Action : [
           "rds:DescribeDBInstances",
           "rds:Connect"
         ]
-        Effect   : "Allow"
+        Effect : "Allow"
         Resource : "*"
       },
       {
-        Action   : [
+        Action : [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Effect   : "Allow"
+        Effect : "Allow"
         Resource : "*"
       }
     ]
