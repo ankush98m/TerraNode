@@ -3,7 +3,7 @@ resource "aws_lambda_function" "email_verification_lambda" {
   function_name = "email-verification-lambda"
   runtime       = "nodejs20.x" # Replace with your runtime
   role          = aws_iam_role.lambda_role.arn
-  handler       = "serverless-fork/index.handler" # Ensure your code has this entry point
+  handler       = "serverless-fork/index.handler" # entry point of serverless
 
   # Lambda deployment package
   filename         = "serverless-fork.zip" # Replace with your zipped Lambda code
@@ -19,7 +19,7 @@ resource "aws_lambda_function" "email_verification_lambda" {
       SENDER_EMAIL     = var.sender_email
       SNS_TOPIC_ARN    = aws_sns_topic.email_verification_topic.arn
       SENDGRID_API_KEY = var.sendgrid_api_key
-
+      DOMAIN           = "${var.subdomain}.${var.domain}"
     }
   }
 
