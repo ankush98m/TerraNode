@@ -16,12 +16,12 @@ jobs:
   aws-deployments:
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      INSTANCE_TYPE: ${{ vars.INSTANCE_TYPE }}
-      KEY_NAME: ${{ vars.KEY_NAME }}
-      SECURITY_GROUP: ${{ vars.SECURITY_GROUP }}
-      AUTOSCALING_GROUP_NAME: ${{ vars.AUTOSCALING_GROUP_NAME }}
-      LAUNCH_TEMPLATE_NAME: ${{ vars.LAUNCH_TEMPLATE_NAME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      INSTANCE_TYPE: ${{ secrets.INSTANCE_TYPE }}
+      KEY_NAME: ${{ secrets.KEY_NAME }}
+      SECURITY_GROUP: ${{ secrets.SECURITY_GROUP }}
+      AUTOSCALING_GROUP_NAME: ${{ secrets.AUTOSCALING_GROUP_NAME }}
+      LAUNCH_TEMPLATE_NAME: ${{ secrets.LAUNCH_TEMPLATE_NAME }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Create a new Launch Template Version
         id: create_launch_template
