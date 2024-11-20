@@ -54,6 +54,10 @@ jobs:
 
       - name: Update Auto Scaling Group to use new Launch Template Version
         run: |
+          LAUNCH_TEMPLATE_VERSION=$(aws ec2 describe-launch-template-versions \
+            --launch-template-name "${{ env.LAUNCH_TEMPLATE_NAME }}" \
+            --query "LaunchTemplateVersions | sort_by(@, &VersionNumber)[-1].VersionNumber" \
+            --output text)
           aws autoscaling update-auto-scaling-group \
             --auto-scaling-group-name ${{ env.AUTOSCALING_GROUP_NAME }} \
             --launch-template "LaunchTemplateName=${{ env.LAUNCH_TEMPLATE_NAME }},Version=$LAUNCH_TEMPLATE_VERSION"
