@@ -7,15 +7,10 @@ on:
     branches:
       - main
 
-permissions:
-  checks: write
-  actions: read
-  contents: read
-
 jobs:
   aws-deployments:
     runs-on: ubuntu-latest
-    environment: Development 
+    environment: Development
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       INSTANCE_TYPE: ${{ secrets.INSTANCE_TYPE }}
@@ -24,8 +19,13 @@ jobs:
       AUTOSCALING_GROUP_NAME: ${{ secrets.AUTOSCALING_GROUP_NAME }}
       LAUNCH_TEMPLATE_NAME: ${{ secrets.LAUNCH_TEMPLATE_NAME }}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: check variables
+        run: |
+          cat ${AWS_REGION}
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v3
