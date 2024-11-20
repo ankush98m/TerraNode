@@ -2,7 +2,8 @@ name: AWS Deployment
 on:
   pull_request:
     types:
-      - closed
+      - opened    
+      - synchronize 
     branches:
       - main
 
@@ -13,7 +14,6 @@ permissions:
 
 jobs:
   aws-deployments:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -31,7 +31,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Create a new Launch Template Version
         id: create_launch_template
