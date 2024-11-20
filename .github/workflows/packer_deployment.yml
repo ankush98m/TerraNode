@@ -34,7 +34,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Create a new Launch Template Version
+      - name: Create a new Launch Template Versions
         id: create_launch_template
         run: |
           NEW_AMI_ID=$(aws ec2 describe-images \
