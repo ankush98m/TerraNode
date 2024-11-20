@@ -16,12 +16,12 @@ jobs:
   aws-deployments:
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      INSTANCE_TYPE: ${{ secrets.INSTANCE_TYPE }}
-      KEY_NAME: ${{ secrets.KEY_NAME }}
-      SECURITY_GROUP: ${{ secrets.SECURITY_GROUP }}
-      AUTOSCALING_GROUP_NAME: ${{ secrets.AUTOSCALING_GROUP_NAME }}
-      LAUNCH_TEMPLATE_NAME: ${{ secrets.LAUNCH_TEMPLATE_NAME }}
+      AWS_REGION: us-east-1
+      INSTANCE_TYPE: t2.micro
+      KEY_NAME: csye6225-aws
+      SECURITY_GROUP: application_security_group
+      AUTOSCALING_GROUP_NAME: terraform-20241119133453980600000007
+      LAUNCH_TEMPLATE_NAME: csye6225_asg
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,9 +29,9 @@ jobs:
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: "AKIAQZFG5K6MBWM4E5PF"
+          aws-secret-access-key: "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"
+          aws-region: "us-east-1"
 
       - name: Create a new Launch Template Version
         id: create_launch_template
