@@ -38,7 +38,7 @@ jobs:
         run: |
           NEW_AMI_ID=$(aws ec2 describe-images \
             --owners self amazon \
-            --filters Name=name,Values="my-webapp-image-*" \
+            --filters Name=name,Values="custom-ubuntu-*" \
             --query "Images | sort_by(@, &CreationDate)[-1].ImageId" --output text)
           
           echo "Using AMI: $NEW_AMI_ID"
