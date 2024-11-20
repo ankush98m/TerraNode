@@ -20,7 +20,7 @@ jobs:
       INSTANCE_TYPE: t2.micro
       KEY_NAME: csye6225-aws
       SECURITY_GROUP: application_security_group
-      AUTOSCALING_GROUP_NAME: terraform-20241119133453980600000007
+      AUTOSCALING_GROUP_NAME: terraform-20241120005119135200000007
       LAUNCH_TEMPLATE_NAME: csye6225_asg
     steps:
       - name: Checkout
