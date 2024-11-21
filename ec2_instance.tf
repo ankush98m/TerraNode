@@ -34,6 +34,9 @@ resource "aws_launch_template" "csye6225_asg_template" {
               echo SENDGRID_API_KEY=${var.sendgrid_api_key} >> /opt/webapp/app/.env
               echo SENDER_EMAIL=${var.sender_email} >> /opt/webapp/app/.env
 
+              echo SNS_TOPIC_ARN=${aws_sns_topic.email_verification_topic.arn} >> /opt/webapp/app/.env
+              echo SNS_REGION=${var.region} >> opt/webapp/app/.env
+
               sudo systemctl enable webapp.service
               sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
               -a fetch-config \
