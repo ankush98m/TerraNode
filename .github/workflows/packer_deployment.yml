@@ -6,23 +6,20 @@ on:
     branches:
       - main
 
-permissions:
-  checks: write
-  actions: read
-  contents: read
-
 jobs:
   aws-deployments:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    environment: Development
     env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      INSTANCE_TYPE: ${{ vars.INSTANCE_TYPE }}
-      KEY_NAME: ${{ vars.KEY_NAME }}
-      SECURITY_GROUP: ${{ vars.SECURITY_GROUP }}
-      AUTOSCALING_GROUP_NAME: ${{ vars.AUTOSCALING_GROUP_NAME }}
-      LAUNCH_TEMPLATE_NAME: ${{ vars.LAUNCH_TEMPLATE_NAME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      INSTANCE_TYPE: ${{ secrets.INSTANCE_TYPE }}
+      KEY_NAME: ${{ secrets.KEY_NAME }}
+      SECURITY_GROUP: ${{ secrets.SECURITY_GROUP }}
+      AUTOSCALING_GROUP_NAME: ${{ secrets.AUTOSCALING_GROUP_NAME }}
+      LAUNCH_TEMPLATE_NAME: ${{ secrets.LAUNCH_TEMPLATE_NAME }}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -31,14 +28,14 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Create a new Launch Template Version
+      - name: Create a new Launch Template Versions
         id: create_launch_template
         run: |
           NEW_AMI_ID=$(aws ec2 describe-images \
             --owners self amazon \
-            --filters Name=name,Values="my-webapp-image-*" \
+            --filters Name=name,Values="custom-ubuntu-*" \
             --query "Images | sort_by(@, &CreationDate)[-1].ImageId" --output text)
           
           echo "Using AMI: $NEW_AMI_ID"
@@ -54,6 +51,10 @@ jobs:
 
       - name: Update Auto Scaling Group to use new Launch Template Version
         run: |
+          LAUNCH_TEMPLATE_VERSION=$(aws ec2 describe-launch-template-versions \
+            --launch-template-name "${{ env.LAUNCH_TEMPLATE_NAME }}" \
+            --query "LaunchTemplateVersions | sort_by(@, &VersionNumber)[-1].VersionNumber" \
+            --output text)
           aws autoscaling update-auto-scaling-group \
             --auto-scaling-group-name ${{ env.AUTOSCALING_GROUP_NAME }} \
             --launch-template "LaunchTemplateName=${{ env.LAUNCH_TEMPLATE_NAME }},Version=$LAUNCH_TEMPLATE_VERSION"
