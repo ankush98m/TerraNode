@@ -111,3 +111,10 @@ variable "key_name" {
   type        = string
   sensitive   = true
 }
+
+variable "serverless_file_path" {
+  description = "Path for serverless repo"
+  type        = string
+  sensitive   = true
+}
+
