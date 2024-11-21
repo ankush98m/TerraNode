@@ -2,13 +2,13 @@ name: AWS Deployment
 on:
   pull_request:
     types:
-      - opened    
-      - synchronize 
+      - closed
     branches:
       - main
 
 jobs:
   aws-deployments:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     environment: Development
     env:
