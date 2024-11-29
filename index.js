@@ -46,7 +46,7 @@ const sendEmail = async (token, email) => {
     const sendGridApiKey = await getSendGridKey();
     sendgrid.setApiKey(sendGridApiKey);
 
-    const verificationLink = `http://${process.env.DOMAIN}/user/verify?token=${token}`;
+    const verificationLink = `https://${process.env.DOMAIN}/user/verify?token=${token}`;
     const msg = {
       to: email,
       from: "no-reply@email.ankushm.me", // Your verified SendGrid sender email
