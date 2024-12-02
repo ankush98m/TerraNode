@@ -4,6 +4,9 @@ This repository contains Terraform configuration files for provisioning and mana
 ## Prerequisites
 - Terraform (version 1.9.7 or similar)
 - AWS CLI
+- import SSL certificates for demo account
+- Command to import certificate:-
+aws acm import-certificate --certificate fileb://path/to/demo.ankushm.me.crt  --private-key fileb:C:/path/to/private_key.key  --certificate-chain fileb:C:/path/to/demo.ankushm.me.ca-bundle
 
 ## How to run
 - Clone the repositry
