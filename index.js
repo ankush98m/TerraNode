@@ -3,6 +3,8 @@ const sendgrid = require("@sendgrid/mail");
 const { Sequelize, DataTypes } = require("sequelize");
 const winston = require("winston");
 const crypto = require("crypto");
+const AWS = require("aws-sdk");
+const secretsManager = new AWS.SecretsManager();
 
 // Configure winston logger
 const logger = winston.createLogger({
@@ -22,22 +24,40 @@ const snsClient = new SNSClient({
   region: "us-east-1", // Change to your desired AWS region
 });
 
-// SendGrid client setup
-sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
-
-const sendEmail = async (token, email) => {
-  const verificationLink = `http://${process.env.DOMAIN}/user/verify?token=${token}`;
-
-  const msg = {
-    to: email,
-    from: "no-reply@email.ankushm.me", // Your verified SendGrid sender email
-    subject: "Verify User",
-    text: `Please click the link below to verify your email: ${verificationLink}`,
-  };
-
+// Function to fetch SendGrid API key from AWS Secrets Manager
+async function getSendGridKey() {
   try {
+    const secretValue = await secretsManager
+      .getSecretValue({ SecretId: "sendgrid-credentials-13" })
+      .promise();
+    const credentials = JSON.parse(secretValue.SecretString);
+    return credentials.apiKey;
+  } catch (error) {
+    console.error("Error fetching SendGrid API key from Secrets Manager:", error);
+    logger.error("Error fetching SendGrid API key:", { error: error.message });
+    throw new Error("Failed to fetch SendGrid API key.");
+  }
+}
+
+// Function to send email using SendGrid
+const sendEmail = async (token, email) => {
+  try {
+    // Fetch API key dynamically
+    const sendGridApiKey = await getSendGridKey();
+    sendgrid.setApiKey(sendGridApiKey);
+    // sendgrid.setApiKey(process.env.SENDGRID_API_KEY)
+    logger.info(`send grid api key: ${sendGridApiKey}`);
+
+    const verificationLink = `https://${process.env.DOMAIN}/user/verify?token=${token}`;
+    const msg = {
+      to: email,
+      from: "no-reply@email.ankushm.me", // Your verified SendGrid sender email
+      subject: "Verify User",
+      text: `Please click the link below to verify your email: ${verificationLink}`,
+    };
+
     await sendgrid.send(msg);
-    console.log("Email sent successfully to:", username);
+    console.log("Email sent successfully to:", email);
     logger.info(`Email sent successfully to: ${email}`);
   } catch (error) {
     console.error("Error sending email:", error);
@@ -50,19 +70,11 @@ exports.handler = async (event) => {
   try {
     // Extract base64 data from SNS message
     const userData = JSON.parse(event.Records[0].Sns.Message);
-    // const userData = Buffer.from(base64name, "base64").toString();
     logger.info("Received user data from SNS", { userData });
     console.log("userData:", userData);
-    if (!userData) {
-      logger.error("Invalid or missing email in SNS message.");
-      console.error("Invalid SNS message received.");
-      return;
-    }
 
-    // const jsonData = JSON.parse(userData);
-    // Validate required fields
     if (!userData || !userData.email) {
-      console.error("Invalid or missing email in SNS message.");
+      logger.error("Invalid or missing email in SNS message.");
       return {
         statusCode: 400,
         body: "Invalid or missing email in SNS message.",
@@ -72,12 +84,13 @@ exports.handler = async (event) => {
     logger.info("Data received from SNS:", { email: userData.email });
     console.log("Data received from SNS:", userData.email);
 
+    // Send the email
     await sendEmail(userData.token, userData.email);
+
     return { statusCode: 200, body: "Email sent successfully." };
-    logger.error("Error in processing SNS message", { error: error.message });
-    return { statusCode: 500, body: "Error processing request." };
   } catch (error) {
     console.error("Error in processing:", error);
-    return { statusCode: 400, body: JSON.stringify(error) };
+    logger.error("Error in processing SNS message", { error: error.message });
+    return { statusCode: 500, body: "Error processing request." };
   }
 };
