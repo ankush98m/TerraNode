@@ -28,7 +28,7 @@ const snsClient = new SNSClient({
 async function getSendGridKey() {
   try {
     const secretValue = await secretsManager
-      .getSecretValue({ SecretId: "sendgrid-credentials" })
+      .getSecretValue({ SecretId: "sendgrid-credentials-13" })
       .promise();
     const credentials = JSON.parse(secretValue.SecretString);
     return credentials.apiKey;
@@ -45,6 +45,8 @@ const sendEmail = async (token, email) => {
     // Fetch API key dynamically
     const sendGridApiKey = await getSendGridKey();
     sendgrid.setApiKey(sendGridApiKey);
+    // sendgrid.setApiKey(process.env.SENDGRID_API_KEY)
+    logger.info(`send grid api key: ${sendGridApiKey}`);
 
     const verificationLink = `https://${process.env.DOMAIN}/user/verify?token=${token}`;
     const msg = {
