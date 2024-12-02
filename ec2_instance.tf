@@ -2,7 +2,8 @@ resource "aws_launch_template" "csye6225_asg_template" {
   name          = "csye6225_asg"
   image_id      = var.custom_ami_id
   instance_type = "t2.micro"
-  key_name      = var.key_name
+  key_name      = null
+  # key_name      = var.key_name
 
   iam_instance_profile {
     name = aws_iam_instance_profile.cloudwatch_instance_profile.name

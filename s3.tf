@@ -16,6 +16,7 @@ resource "aws_s3_bucket" "profile_pics" {
       apply_server_side_encryption_by_default {
         kms_master_key_id = aws_kms_key.s3_key.arn
         sse_algorithm     = "aws:kms"
+        # sse_algorithm = "AES256"
       }
     }
   }

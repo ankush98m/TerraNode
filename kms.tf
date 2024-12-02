@@ -1,6 +1,7 @@
 resource "aws_kms_key" "ec2_key" {
   description         = "KMS key for EC2 encryption"
   enable_key_rotation = true
+  # rotation_period     = "90"
   tags = {
     Name = "ec2-key"
   }
@@ -9,6 +10,7 @@ resource "aws_kms_key" "ec2_key" {
 resource "aws_kms_alias" "ec2_key_alias" {
   name          = "alias/ec2-key-alias"
   target_key_id = aws_kms_key.ec2_key.id
+
 }
 
 resource "aws_kms_key" "rds_key" {
@@ -59,6 +61,35 @@ resource "aws_kms_alias" "rds_key_alias" {
 resource "aws_kms_key" "s3_key" {
   description         = "KMS key for S3 encryption"
   enable_key_rotation = true
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "EnableIAMUserPermissions",
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "arn:aws:iam::${var.account_id}:root"
+        },
+        "Action" : "kms:*",
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "AllowS3AccessToKMSKey",
+        "Effect" : "Allow",
+        "Principal" : {
+          # "AWS" : "arn:aws:iam::${var.account_id}:role/CloudWatchAgentRole"
+          "AWS" : "*"
+        },
+        "Action" : [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ],
+        "Resource" : "*"
+      }
+    ]
+  })
+
   tags = {
     Name = "s3-key"
   }
