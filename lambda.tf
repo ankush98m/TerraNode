@@ -12,12 +12,12 @@ resource "aws_lambda_function" "email_verification_lambda" {
   # Environment variables
   environment {
     variables = {
-      RDS_HOST         = aws_db_instance.default.address
-      DB_DATABASE      = var.db_name
-      DB_USER          = var.db_username
-      SENDER_EMAIL     = var.sender_email
-      SNS_TOPIC_ARN    = aws_sns_topic.email_verification_topic.arn
-      DOMAIN           = "${var.subdomain}.${var.domain}"
+      RDS_HOST      = aws_db_instance.default.address
+      DB_DATABASE   = var.db_name
+      DB_USER       = var.db_username
+      SENDER_EMAIL  = var.sender_email
+      SNS_TOPIC_ARN = aws_sns_topic.email_verification_topic.arn
+      DOMAIN        = "${var.subdomain}.${var.domain}"
     }
   }
 

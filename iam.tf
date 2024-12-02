@@ -23,34 +23,34 @@ resource "aws_iam_policy" "cloudwatch_policy" {
   description = "CloudWatch Agent Policy for EC2"
 
   policy = jsonencode({
-    "Statement": [
-        {
-            "Action": [
-                "cloudwatch:PutMetricData",
-                "logs:CreateLogGroup",
-                "s3:GetObject",
-                "s3:PutObject",
-                "s3:DeleteObject",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-                "logs:DescribeLogStreams",
-                "s3:ListAllMyBuckets",
-                "SNS:Publish",
-                "secretsmanager:GetSecretValue"
-            ],
-            "Effect": "Allow",
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "kms:Decrypt"
-            ],
-            "Resource": "*"
-        }
+    "Statement" : [
+      {
+        "Action" : [
+          "cloudwatch:PutMetricData",
+          "logs:CreateLogGroup",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+          "s3:ListAllMyBuckets",
+          "SNS:Publish",
+          "secretsmanager:GetSecretValue"
+        ],
+        "Effect" : "Allow",
+        "Resource" : "*"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "kms:Decrypt"
+        ],
+        "Resource" : "*"
+      }
     ],
-    "Version": "2012-10-17"
-})
+    "Version" : "2012-10-17"
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "cloudwatch_attach" {
@@ -112,13 +112,13 @@ resource "aws_iam_policy" "lambda_policy" {
         Effect : "Allow",
         Resource : "*"
       },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "kms:Decrypt"
-            ],
-            "Resource": "*"
-        }
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "kms:Decrypt"
+        ],
+        "Resource" : "*"
+      }
     ]
   })
 }
