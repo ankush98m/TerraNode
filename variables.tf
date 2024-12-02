@@ -71,7 +71,7 @@ variable "domain" {
 }
 
 variable "subdomain" {
-  description = "Root domain"
+  description = "Root subdomain"
   type        = string
   sensitive   = true
 }
@@ -114,6 +114,12 @@ variable "key_name" {
 
 variable "serverless_file_path" {
   description = "Path for serverless repo"
+  type        = string
+  sensitive   = true
+}
+
+variable "account_id" {
+  description = "Account id of aws"
   type        = string
   sensitive   = true
 }

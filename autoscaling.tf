@@ -1,5 +1,6 @@
 # Auto Scaling Group
 resource "aws_autoscaling_group" "web_app_asg" {
+  name = "WebappAutoScalingGroup"
   launch_template {
     id      = aws_launch_template.csye6225_asg_template.id
     version = "$Latest"
