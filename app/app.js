@@ -111,6 +111,29 @@ app.get("/healthz", async (req, res) => {
   }
 });
 
+app.get("/cicd", async (req, res) => {
+  // No payload allowed
+  try {
+    if (req.body && Object.keys(req.body).length > 0) {
+      return res.status(400).send();
+    }
+
+    // Connect to the database
+    await sequelize.authenticate();
+    res
+      .status(200)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
+  } catch (err) {
+    console.error("Database connection error:", err);
+    // Send 503 if the database connection fails
+    res
+      .status(503)
+      .set("Cache-Control", "no-cache", "no-store", "must-revalidate")
+      .send();
+  }
+});
+
 // Handle unsupported HTTP methods for the /healthz endpoint
 app.all("/healthz", (req, res) => {
   if (req.method != "GET") {
